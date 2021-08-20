@@ -333,7 +333,11 @@ class Node(AbstractNode):
     def icon(self) -> str:
         return "📍"
 
-    def get_client(self, routes: Optional[List[Route]] = None) -> ClientT:
+    def get_client(
+        self,
+        routes: Optional[List[Route]] = None,
+        signing_key: Optional[SigningKey] = None,
+    ) -> ClientT:
         if not routes:
             conn_client = create_virtual_connection(node=self)
             solo = SoloRoute(destination=self.target_id, connection=conn_client)
@@ -348,7 +352,7 @@ class Node(AbstractNode):
             domain=self.domain,
             device=self.device,
             vm=self.vm,
-            signing_key=None,  # DO NOT PASS IN A SIGNING KEY!!! The client generates one.
+            signing_key=signing_key,  # If no signing_key is passed, the client generates one.
             verify_key=None,  # DO NOT PASS IN A VERIFY KEY!!! The client generates one.
         )
 
@@ -523,7 +527,6 @@ class Node(AbstractNode):
     def process_message(
         self, msg: SignedMessage, router: dict
     ) -> Union[SyftMessage, None]:
-        print(msg.message)
         self.message_counter += 1
 
         debug(f"> Processing 📨 {msg.pprint} @ {self.pprint} {msg.message}")
@@ -538,7 +541,6 @@ class Node(AbstractNode):
 
             try:  # we use try/except here because it's marginally faster in Python
                 service = router[type(msg.message)]
-                print(service)
             except KeyError as e:
                 log = (
                     f"The node {self.id} of type {type(self)} cannot process messages of type "

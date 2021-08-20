@@ -48,6 +48,7 @@ class MPCTensor(PassthroughTensor):
         shape: Optional[Tuple[int]] = None,
         seed_shares: Optional[int] = None,
     ) -> None:
+
         if secret is None and shares is None:
             raise ValueError("Secret or shares should be populated!")
 
@@ -77,9 +78,24 @@ class MPCTensor(PassthroughTensor):
 
         res = MPCTensor._mpc_from_shares(shares, parties)
 
+        self.parties = parties
+
         self.mpc_shape = shape
 
+        # we need to make sure that when we zip up clients from
+        # multiple MPC tensors that they are in corresponding order
+        # so we always sort all of them by the id of the domain
+        # TODO: store children as lists of dictionaries because eventually
+        # it's likely that we have multiple shares from the same client
+        # (For example, if you wanted a domain to have 90% share ownership
+        # you'd need to produce 10 shares and give 9 of them to the same domain)
+        res.sort(key=lambda share: share.client.name + share.client.id.no_dash)
+
         super().__init__(res)
+
+    @property
+    def shape(self):
+        return self.mpc_shape
 
     @staticmethod
     def _mpc_from_shares(
@@ -128,7 +144,7 @@ class MPCTensor(PassthroughTensor):
     ) -> List[ShareTensor]:
         shares = []
         for i, party in enumerate(parties):
-            if party == secret.client:
+            if secret is not None and party == secret.client:
                 value = secret
             else:
                 value = None
@@ -170,11 +186,23 @@ class MPCTensor(PassthroughTensor):
 
         return shares
 
-    def reconstruct(self) -> Any:
+    def request(
+        self,
+        reason: str = "",
+        block: bool = False,
+        timeout_secs: Optional[int] = None,
+        verbose: bool = False,
+    ):
+        for child in self.child:
+            child.request(
+                reason=reason, block=block, timeout_secs=timeout_secs, verbose=verbose
+            )
+
+    def reconstruct(self):
         # TODO: It might be that the resulted shares (if we run any computation) might
         # not be available at this point
 
-        local_shares = [share.get_copy() for share in self.child]
+        local_shares = [share.get() for share in self.child]
         is_share_tensor = isinstance(local_shares[0], ShareTensor)
 
         if is_share_tensor:
@@ -187,6 +215,8 @@ class MPCTensor(PassthroughTensor):
         # if not is_share_tensor:
         #    result = result.decode()
         return result
+
+    get = reconstruct
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -233,10 +263,16 @@ class MPCTensor(PassthroughTensor):
         return object.__getattribute__(self, attr_name)
 
     def __apply_private_op(self, other: "MPCTensor", op_str: str) -> List[ShareTensor]:
+        print("C.N.0")
         op = getattr(operator, op_str)
+        print("C.N.1")
         if isinstance(other, MPCTensor):
+            print("C.N.1.A")
+            print(op)
+            print(op_str)
             res_shares = [op(a, b) for a, b in zip(self.child, other.child)]
         else:
+            print("C.N.1.B")
             raise ValueError("Add works only for the MPCTensor at the moment!")
         return res_shares
 
@@ -265,12 +301,42 @@ class MPCTensor(PassthroughTensor):
         Returns:
             MPCTensor. the operation "op_str" applied on "self" and "y"
         """
-        is_private = isinstance(y, MPCTensor)
 
-        if is_private:
-            result = self.__apply_private_op(y, op_str)
+        _self = self
+        if ispointer(y):
+
+            if y.client not in self.parties:
+                parties = self.parties + [y.client]
+            else:
+                parties = [party for party in self.parties]
+
+            # TODO: Extract info for y shape from somewhere
+            # We presume at the moment that it is the same shape
+            y = MPCTensor(secret=y, shape=self.mpc_shape, parties=parties)
+
+            seed_shares = secrets.randbits(32)
+
+            shares = MPCTensor._get_shares_from_remote_secret(
+                secret=None,
+                shape=self.mpc_shape,
+                parties=parties,
+                seed_shares=seed_shares,
+            )
+
+            op = getattr(operator, op_str)
+
+            new_shares = [
+                op(share1, share2) for share1, share2 in zip(self.child, shares)
+            ]
+
+            new_shares.append(shares[-1])
+
+            _self = MPCTensor(shares=new_shares, shape=self.mpc_shape, parties=parties)
+
+        if isinstance(y, MPCTensor):
+            result = _self.__apply_private_op(y, op_str)
         else:
-            result = self.__apply_public_op(y, op_str)
+            result = _self.__apply_public_op(y, op_str)
 
         if isinstance(y, (float, int)):
             y_shape = (1,)
@@ -280,7 +346,11 @@ class MPCTensor(PassthroughTensor):
             y_shape = y.shape
 
         shape = MPCTensor.__get_shape(op_str, self.mpc_shape, y_shape)
-        result = MPCTensor(shares=result, shape=shape)
+        # shape = self.shape
+        # print("...when it should be " + str(self.shape) + " of type " + str(type(shape)))
+
+        result = MPCTensor(shares=result, shape=shape, parties=_self.parties)
+
         return result
 
     def add(
@@ -296,6 +366,12 @@ class MPCTensor(PassthroughTensor):
         """
         res = self.__apply_op(y, "add")
         return res
+        # if isinstance(y, MPCTensor):
+        #     res_shares = [operator.add(a, b) for a, b in zip(self.child, y.child)]
+        #     mpc_tensor = MPCTensor(shares=res_shares, shape=self.shape, parties=self.parties)
+        #     return mpc_tensor
+        # else:
+        #     return NotImplemented
 
     def sub(self, y: "MPCTensor") -> "MPCTensor":
         res = self.__apply_op(y, "sub")
@@ -332,6 +408,17 @@ class MPCTensor(PassthroughTensor):
             res = f"{res}\n\t{share}"
 
         return res
+
+    def __repr__(self):
+
+        out = "MPCTensor"
+
+        out += ".shape=" + str(self.shape) + "\n"
+        for i, child in enumerate(self.child):
+            out += f"\t .child[{i}] = " + child.__repr__() + "\n"
+        out = out[:-1] + ""
+
+        return out
 
     __add__ = add
     __radd__ = add

@@ -107,67 +107,6 @@ def get_run_class_method(attr_path_and_name: str) -> CallableT:
         internal `attr_path_and_name` variable.
     """
 
-    def run_class_method(
-        __self: Any,
-        *args: Tuple[Any, ...],
-        **kwargs: Any,
-    ) -> object:
-        """Run remote class method and get pointer to returned object.
-
-        Args:
-            *args: Args list of class method.
-            **kwargs: Keyword args of class method.
-
-        Returns:
-            Pointer to object returned by class method.
-        """
-        # we want to get the return type which matches the attr_path_and_name
-        # so we ask lib_ast for the return type name that matches out
-        # attr_path_and_name and then use that to get the actual pointer klass
-        # then set the result to that pointer klass
-        return_type_name = __self.client.lib_ast.query(
-            attr_path_and_name
-        ).return_type_name
-        resolved_pointer_type = __self.client.lib_ast.query(return_type_name)
-        result = resolved_pointer_type.pointer_type(client=__self.client)
-
-        # QUESTION can the id_at_location be None?
-        result_id_at_location = getattr(result, "id_at_location", None)
-        if result_id_at_location is not None:
-            # first downcast anything primitive which is not already PyPrimitive
-            (
-                downcast_args,
-                downcast_kwargs,
-            ) = lib.python.util.downcast_args_and_kwargs(args=args, kwargs=kwargs)
-
-            # then we convert anything which isnt a pointer into a pointer
-            pointer_args, pointer_kwargs = pointerize_args_and_kwargs(
-                args=downcast_args,
-                kwargs=downcast_kwargs,
-                client=__self.client,
-                gc_enabled=False,
-            )
-
-            cmd = RunClassMethodAction(
-                path=attr_path_and_name,
-                _self=__self,
-                args=pointer_args,
-                kwargs=pointer_kwargs,
-                id_at_location=result_id_at_location,
-                address=__self.client.address,
-            )
-            __self.client.send_immediate_msg_without_reply(msg=cmd)
-
-        inherit_tags(
-            attr_path_and_name=attr_path_and_name,
-            result=result,
-            self_obj=__self,
-            args=args,
-            kwargs=kwargs,
-        )
-
-        return result
-
     def run_class_smpc_method(
         __self: Any,
         *args: Tuple[Any, ...],
@@ -232,6 +171,68 @@ def get_run_class_method(attr_path_and_name: str) -> CallableT:
             address=__self.client.address,
         )
         __self.client.send_immediate_msg_without_reply(msg=cmd)
+
+        inherit_tags(
+            attr_path_and_name=attr_path_and_name,
+            result=result,
+            self_obj=__self,
+            args=args,
+            kwargs=kwargs,
+        )
+
+        return result
+
+    def run_class_method(
+        __self: Any,
+        *args: Tuple[Any, ...],
+        **kwargs: Any,
+    ) -> object:
+        """Run remote class method and get pointer to returned object.
+
+        Args:
+            *args: Args list of class method.
+            **kwargs: Keyword args of class method.
+
+        Returns:
+            Pointer to object returned by class method.
+        """
+
+        # we want to get the return type which matches the attr_path_and_name
+        # so we ask lib_ast for the return type name that matches out
+        # attr_path_and_name and then use that to get the actual pointer klass
+        # then set the result to that pointer klass
+        return_type_name = __self.client.lib_ast.query(
+            attr_path_and_name
+        ).return_type_name
+        resolved_pointer_type = __self.client.lib_ast.query(return_type_name)
+        result = resolved_pointer_type.pointer_type(client=__self.client)
+
+        # QUESTION can the id_at_location be None?
+        result_id_at_location = getattr(result, "id_at_location", None)
+        if result_id_at_location is not None:
+            # first downcast anything primitive which is not already PyPrimitive
+            (
+                downcast_args,
+                downcast_kwargs,
+            ) = lib.python.util.downcast_args_and_kwargs(args=args, kwargs=kwargs)
+
+            # then we convert anything which isnt a pointer into a pointer
+            pointer_args, pointer_kwargs = pointerize_args_and_kwargs(
+                args=downcast_args,
+                kwargs=downcast_kwargs,
+                client=__self.client,
+                gc_enabled=False,
+            )
+
+            cmd = RunClassMethodAction(
+                path=attr_path_and_name,
+                _self=__self,
+                args=pointer_args,
+                kwargs=pointer_kwargs,
+                id_at_location=result_id_at_location,
+                address=__self.client.address,
+            )
+            __self.client.send_immediate_msg_without_reply(msg=cmd)
 
         inherit_tags(
             attr_path_and_name=attr_path_and_name,
@@ -617,7 +618,26 @@ class Class(Callable):
         attrs["__name__"] = name
         attrs["__module__"] = ".".join(parts)
 
-        klass_pointer = type(self.pointer_name, (Pointer,), attrs)
+        # if the object already has a pointer class specified, use that instead of creating
+        # an empty subclass of Pointer
+        if hasattr(self.object_ref, "PointerClassOverride"):
+
+            klass_pointer = getattr(self.object_ref, "PointerClassOverride")
+            for key, val in attrs.items():
+
+                # only override functioanlity of AST attributes if they
+                # don't already exist on the PointerClassOverride class
+                # (the opposite of inheritance)
+                if not hasattr(klass_pointer, key):
+                    setattr(klass_pointer, key, val)
+                else:
+                    # TODO: cache attribute in backup_ location so that we can use them if we want
+                    pass
+
+        # no specific pointer class found, let's make an empty subclass of Pointer instead
+        else:
+            klass_pointer = type(self.pointer_name, (Pointer,), attrs)
+
         setattr(klass_pointer, "path_and_name", self.path_and_name)
         setattr(self, self.pointer_name, klass_pointer)
 
@@ -905,6 +925,7 @@ class Class(Callable):
         return super().__setattr__(key, value)
 
 
+# TODO: this should move out of AST into a util somewhere? or osmething related to Pointer
 def pointerize_args_and_kwargs(
     args: Union[List[Any], Tuple[Any, ...]],
     kwargs: Dict[Any, Any],

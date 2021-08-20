@@ -557,6 +557,7 @@ def create_launch_docker_cmd(
         cmd += " -d"
 
     cmd += " --build"  # force rebuild
+
     cmd = "cd " + GRID_SRC_PATH + ";" + cmd
     return cmd
 
