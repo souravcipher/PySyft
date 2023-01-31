@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -176,19 +182,18 @@
 <span class="c1"># third party</span>
 <span class="kn">from</span> <span class="nn">google.protobuf.reflection</span> <span class="kn">import</span> <span class="n">GeneratedProtocolMessageType</span>
 
-<span class="c1"># syft relative</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">...proto.core.common.common_object_pb2</span> <span class="kn">import</span> <span class="n">ObjectWithID</span> <span class="k">as</span> <span class="n">ObjectWithID_PB</span>
 <span class="kn">from</span> <span class="nn">...util</span> <span class="kn">import</span> <span class="n">validate_type</span>
-<span class="kn">from</span> <span class="nn">..common.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span>
-<span class="kn">from</span> <span class="nn">..common.serde.serializable</span> <span class="kn">import</span> <span class="n">Serializable</span>
-<span class="kn">from</span> <span class="nn">..common.serde.serializable</span> <span class="kn">import</span> <span class="n">bind_protobuf</span>
-<span class="kn">from</span> <span class="nn">..common.serde.serialize</span> <span class="kn">import</span> <span class="n">_serialize</span> <span class="k">as</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span>
+<span class="kn">from</span> <span class="nn">.serde.serializable</span> <span class="kn">import</span> <span class="n">serializable</span>
+<span class="kn">from</span> <span class="nn">.serde.serialize</span> <span class="kn">import</span> <span class="n">_serialize</span> <span class="k">as</span> <span class="n">serialize</span>
 <span class="kn">from</span> <span class="nn">.uid</span> <span class="kn">import</span> <span class="n">UID</span>
 
 
-<div class="viewcode-block" id="ObjectWithID"><a class="viewcode-back" href="../../../../api_reference/syft.core.common.object.html#syft.core.common.ObjectWithID">[docs]</a><span class="nd">@bind_protobuf</span>
-<span class="k">class</span> <span class="nc">ObjectWithID</span><span class="p">(</span><span class="n">Serializable</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This object is the superclass for nearly all Syft objects. Subclassing</span>
+<div class="viewcode-block" id="ObjectWithID"><a class="viewcode-back" href="../../../../api_reference/syft.core.common.object.html#syft.core.common.ObjectWithID">[docs]</a><span class="nd">@serializable</span><span class="p">()</span>
+<span class="k">class</span> <span class="nc">ObjectWithID</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This object is the superclass for nearly all Syft objects. Subclassing</span>
 <span class="sd">    from this object will cause an object to be initialized with a unique id</span>
 <span class="sd">    using the process specified in the UID class.</span>
 
@@ -207,7 +212,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ObjectWithID.__init__"><a class="viewcode-back" href="../../../../api_reference/syft.core.common.object.html#syft.core.common.ObjectWithID.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UID</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;This initializer only exists to set the id attribute, which is the</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;This initializer only exists to set the id attribute, which is the</span>
 <span class="sd">        primary purpose of this class. It also sets the &#39;as_wrapper&#39; flag</span>
 <span class="sd">        for the &#39;Serializable&#39; superclass.</span>
 
@@ -227,7 +232,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UID</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;We reveal ObjectWithID.id as a property to discourage users and</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;We reveal ObjectWithID.id as a property to discourage users and</span>
 <span class="sd">        developers of Syft from modifying .id attributes after an object</span>
 <span class="sd">        has been initialized.</span>
 
@@ -237,7 +242,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span>
 
     <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Checks to see if two ObjectWithIDs are actually the same object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks to see if two ObjectWithIDs are actually the same object.</span>
 
 <span class="sd">        This checks to see whether this ObjectWithIDs is equal to another by</span>
 <span class="sd">        comparing whether they have the same .id objects. These objects</span>
@@ -256,7 +261,7 @@
             <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a human-readable representation of the ObjectWithID with brackets</span>
 <span class="sd">        so that it can be easily spotted when nested inside of the human-</span>
 <span class="sd">        readable representations of other objects.</span>
@@ -270,7 +275,7 @@
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">no_dash</span><span class="si">}</span><span class="s2">&gt;&quot;</span>
 
 <div class="viewcode-block" id="ObjectWithID.repr_short"><a class="viewcode-back" href="../../../../api_reference/syft.core.common.object.html#syft.core.common.ObjectWithID.repr_short">[docs]</a>    <span class="k">def</span> <span class="nf">repr_short</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a SHORT human-readable version of the ID which</span>
 <span class="sd">        makes it print nicer when embedded (often alongside other</span>
 <span class="sd">        UID objects) within other object __repr__ methods.</span>
@@ -282,7 +287,7 @@
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">repr_short</span><span class="p">()</span><span class="si">}</span><span class="s2">&gt;&quot;</span></div>
 
     <span class="k">def</span> <span class="nf">_object2proto</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ObjectWithID_PB</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        As a requirement of all objects which inherit from Serializable,</span>
 <span class="sd">        this method transforms the current object into the corresponding</span>
 <span class="sd">        Protobuf object so that it can be further serialized.</span>
@@ -299,7 +304,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="p">:</span> <span class="n">ObjectWithID_PB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ObjectWithID&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Creates a ObjectWithID from a protobuf</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a ObjectWithID from a protobuf</span>
 
 <span class="sd">        As a requirement of all objects which inherit from Serializable,</span>
 <span class="sd">        this method transforms a protobuf object into an instance of this class.</span>
@@ -319,7 +324,7 @@
 
 <div class="viewcode-block" id="ObjectWithID.get_protobuf_schema"><a class="viewcode-back" href="../../../../api_reference/syft.core.common.object.html#syft.core.common.ObjectWithID.get_protobuf_schema">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_protobuf_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">GeneratedProtocolMessageType</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
 
 <span class="sd">        As a part of serialization and deserialization, we need the ability to</span>
 <span class="sd">        lookup the protobuf object type directly from the object type. This</span>

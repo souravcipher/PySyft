@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -169,15 +175,12 @@
               <div>
                 
   <h1>Source code for syft.lib.util</h1><div class="highlight"><pre>
-<span></span><span class="c1"># stdlib</span>
-<span class="kn">import</span> <span class="nn">inspect</span>
-<span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">ModuleType</span>
+<span></span><span class="sd">&quot;&quot;&quot; A set of util methods used by the syft.lib submodule. &quot;&quot;&quot;</span>
+<span class="c1"># stdlib</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span> <span class="k">as</span> <span class="n">TypeUnion</span>
 
-<span class="c1"># syft relative</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">..ast.globals</span> <span class="kn">import</span> <span class="n">Globals</span>
 <span class="kn">from</span> <span class="nn">..core.node.abstract.node</span> <span class="kn">import</span> <span class="n">AbstractNodeClient</span>
 
@@ -190,6 +193,17 @@
     <span class="n">create_ast</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
     <span class="n">ast_or_client</span><span class="p">:</span> <span class="n">TypeUnion</span><span class="p">[</span><span class="n">Globals</span><span class="p">,</span> <span class="n">AbstractNodeClient</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Update the abstract syntax tree data structure used by the Globals or AbstractNodeClient data_subjects.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        lib_name (str): Library name to update ast.</span>
+<span class="sd">        create_ast (Callable): AST generation function for the given library.</span>
+<span class="sd">        ast_or_client (Union[Globals, AbstractNodeClient]): DataSubject to update ast.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: raises a ValueError exception if ast_or_client isn&#39;t a Globals or AbstractNodeClient instance.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast_or_client</span><span class="p">,</span> <span class="n">Globals</span><span class="p">):</span>
         <span class="n">ast</span> <span class="o">=</span> <span class="n">ast_or_client</span>
         <span class="n">new_lib_ast</span> <span class="o">=</span> <span class="n">create_ast</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
@@ -205,132 +219,13 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="is_static_method"><a class="viewcode-back" href="../../../api_reference/syft.lib.html#syft.lib.util.is_static_method">[docs]</a><span class="k">def</span> <span class="nf">is_static_method</span><span class="p">(</span><span class="n">klass</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">attr</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Test if a value of a class is static method.</span>
-
-<span class="sd">    Example:</span>
-
-<span class="sd">    .. code-block::</span>
-
-<span class="sd">        class MyClass(object):</span>
-<span class="sd">            @staticmethod</span>
-<span class="sd">            def method():</span>
-<span class="sd">                ...</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        klass (type): the class on which we want to check whether the method is statically implemented</span>
-<span class="sd">        attr (str): the name of the method we want to check.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        bool: whether or not a method named &lt;attr&gt; is a static method of class &lt;klass&gt;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">(</span><span class="n">klass</span><span class="p">):</span>
-        <span class="k">return</span> <span class="kc">False</span>
-
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">klass</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
-        <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">klass</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">False</span>
-
-    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">klass</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="o">!=</span> <span class="n">value</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Method don&#39;t match&quot;</span><span class="p">)</span>
-
-    <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmro</span><span class="p">(</span><span class="n">klass</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isroutine</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">:</span>
-                <span class="n">bound_value</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bound_value</span><span class="p">,</span> <span class="nb">staticmethod</span><span class="p">):</span>
-                    <span class="k">return</span> <span class="kc">True</span>
-    <span class="k">return</span> <span class="kc">False</span></div>
-
-
-<div class="viewcode-block" id="copy_static_methods"><a class="viewcode-back" href="../../../api_reference/syft.lib.html#syft.lib.util.copy_static_methods">[docs]</a><span class="k">def</span> <span class="nf">copy_static_methods</span><span class="p">(</span><span class="n">from_class</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">to_class</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Copies all static methods from one class to another class</span>
-
-<span class="sd">    This utility was initialized during the creation of the Constructor for PyTorch&#39;s &quot;th.Tensor&quot; class. Since we</span>
-<span class="sd">    replace each original constructor (th.Tensor) with on we implement (torch.UppercaseTensorConstructor), we also</span>
-<span class="sd">    need to make sure that our new constructor has any static methods which were previously stored on th.Tensor.</span>
-<span class="sd">    Otherwise, the library might look for them there, not find them, and then trigger an error.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        from_class (Type): the class on which we look for static methods co copy</span>
-<span class="sd">        to_class (Type): the class onto which we copy all static methods found in &lt;from_class&gt;</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># there are no static methods if from_class itself is not a type (sometimes funcs get passed in)</span>
-
-    <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">from_class</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">is_static_method</span><span class="p">(</span><span class="n">klass</span><span class="o">=</span><span class="n">from_class</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="n">attr</span><span class="p">):</span>
-            <span class="nb">setattr</span><span class="p">(</span><span class="n">to_class</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">from_class</span><span class="p">,</span> <span class="n">attr</span><span class="p">))</span></div>
-
-
-<div class="viewcode-block" id="get_original_constructor_name"><a class="viewcode-back" href="../../../api_reference/syft.lib.html#syft.lib.util.get_original_constructor_name">[docs]</a><span class="k">def</span> <span class="nf">get_original_constructor_name</span><span class="p">(</span><span class="n">object_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Generate name for original constructor</span>
-
-<span class="sd">    For each custom constructor, we move the original constructor to a consistent location relative to</span>
-<span class="sd">    the original constructor so that each custom constructor automatically knows where to find the original</span>
-<span class="sd">    method it is overloading. Namely, we move the original constructor to a different attr within the same</span>
-<span class="sd">    module as the original constructor. This method specifies the naming convention that we use to name</span>
-<span class="sd">    the original constructor when it is moved.</span>
-
-<span class="sd">      Args:</span>
-<span class="sd">          object_name (str): the original constructor&#39;s original name</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;original_</span><span class="si">{</span><span class="n">object_name</span><span class="si">}</span><span class="s2">&quot;</span></div>
-
-
-<div class="viewcode-block" id="replace_classes_in_module"><a class="viewcode-back" href="../../../api_reference/syft.lib.html#syft.lib.util.replace_classes_in_module">[docs]</a><span class="k">def</span> <span class="nf">replace_classes_in_module</span><span class="p">(</span>
-    <span class="n">module</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">,</span>
-    <span class="n">from_class</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
-    <span class="n">to_class</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
-    <span class="n">ignore_prefix</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Recursively replace occurrence of `from_class` to `to_class` inside module.</span>
-
-<span class="sd">    For example, when syft replaces torch.nn.parameter.Parameter constructor,</span>
-<span class="sd">    there&#39;s also need to replace the same constructor in other modules that has already</span>
-<span class="sd">    imported it.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        module (ModuleType): top-level module to traverse</span>
-<span class="sd">        from_class: Original constructor</span>
-<span class="sd">        to_class: syft&#39;s ObjectConstructor</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">visited_modules</span> <span class="o">=</span> <span class="p">[]</span>
-
-    <span class="k">def</span> <span class="nf">recursive_update</span><span class="p">(</span>
-        <span class="n">module</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-
-        <span class="c1"># check if we need to skip this attribute to preserve our unmodified</span>
-        <span class="c1"># original copy</span>
-        <span class="k">if</span> <span class="p">(</span>
-            <span class="n">attr_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-            <span class="ow">and</span> <span class="n">ignore_prefix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-            <span class="ow">and</span> <span class="n">attr_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">ignore_prefix</span><span class="p">)</span>
-        <span class="p">):</span>
-            <span class="c1"># found an attr that should be skipped so lets return</span>
-            <span class="k">return</span>
-        <span class="n">attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attr_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">module</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">ModuleType</span><span class="p">)</span> <span class="ow">and</span> <span class="n">attr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">visited_modules</span><span class="p">:</span>
-            <span class="n">visited_modules</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">child_attr_name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">attr</span><span class="p">):</span>
-                <span class="n">recursive_update</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">child_attr_name</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="p">(</span>
-            <span class="nb">isinstance</span><span class="p">(</span><span class="n">attr_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span> <span class="ow">and</span> <span class="n">attr</span> <span class="ow">is</span> <span class="n">from_class</span>
-        <span class="p">):</span>
-            <span class="nb">setattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">to_class</span><span class="p">)</span>
-
-    <span class="n">recursive_update</span><span class="p">(</span><span class="n">module</span><span class="p">)</span></div>
-
-
 <div class="viewcode-block" id="full_name_with_qualname"><a class="viewcode-back" href="../../../api_reference/syft.lib.html#syft.lib.util.full_name_with_qualname">[docs]</a><span class="k">def</span> <span class="nf">full_name_with_qualname</span><span class="p">(</span><span class="n">klass</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns the klass module name + klass qualname.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">klass</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">klass</span><span class="o">.</span><span class="vm">__qualname__</span><span class="si">}</span><span class="s2">&quot;</span></div>
 
 
 <div class="viewcode-block" id="full_name_with_name"><a class="viewcode-back" href="../../../api_reference/syft.lib.html#syft.lib.util.full_name_with_name">[docs]</a><span class="k">def</span> <span class="nf">full_name_with_name</span><span class="p">(</span><span class="n">klass</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns the klass module name + klass name.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">klass</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">klass</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span></div>
 </pre></div>
 

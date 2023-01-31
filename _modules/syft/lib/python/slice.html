@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -169,100 +175,193 @@
               <div>
                 
   <h1>Source code for syft.lib.python.slice</h1><div class="highlight"><pre>
-<span></span><span class="c1"># stdlib</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This source file aims to replace the standard slice object/function provided by Python</span>
+<span class="sd">to be handled by the PySyft&#39;s abstract syntax tree data structure during a remote call.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># stdlib</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
 <span class="c1"># third party</span>
 <span class="kn">from</span> <span class="nn">google.protobuf.reflection</span> <span class="kn">import</span> <span class="n">GeneratedProtocolMessageType</span>
 
-<span class="c1"># syft relative</span>
-<span class="kn">from</span> <span class="nn">...</span> <span class="kn">import</span> <span class="n">deserialize</span>
-<span class="kn">from</span> <span class="nn">...</span> <span class="kn">import</span> <span class="n">serialize</span>
-<span class="kn">from</span> <span class="nn">...core.common</span> <span class="kn">import</span> <span class="n">UID</span>
-<span class="kn">from</span> <span class="nn">...core.common.serde.serializable</span> <span class="kn">import</span> <span class="n">bind_protobuf</span>
+<span class="c1"># relative</span>
+<span class="kn">from</span> <span class="nn">...core.common.serde.serializable</span> <span class="kn">import</span> <span class="n">serializable</span>
 <span class="kn">from</span> <span class="nn">...proto.lib.python.slice_pb2</span> <span class="kn">import</span> <span class="n">Slice</span> <span class="k">as</span> <span class="n">Slice_PB</span>
 <span class="kn">from</span> <span class="nn">.primitive_factory</span> <span class="kn">import</span> <span class="n">PrimitiveFactory</span>
 <span class="kn">from</span> <span class="nn">.primitive_interface</span> <span class="kn">import</span> <span class="n">PyPrimitive</span>
 <span class="kn">from</span> <span class="nn">.types</span> <span class="kn">import</span> <span class="n">SyPrimitiveRet</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">upcast</span>
 
 
-<span class="nd">@bind_protobuf</span>
+<span class="nd">@serializable</span><span class="p">()</span>  <span class="c1"># This decorator turns this class serializable.</span>
 <span class="k">class</span> <span class="nc">Slice</span><span class="p">(</span><span class="n">PyPrimitive</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="Slice.__init__"><a class="viewcode-back" href="../../../../api_reference/syft.lib.python.html#syft.lib.python.Slice.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">start</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">stop</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">step</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="nb">id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UID</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This class will receive start, stop, step  valid parameters.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            start (Any): Index/position where the slicing of the object starts.</span>
+<span class="sd">            stop (Any): Index/position which the slicing takes place. The slicing stops at index stop-1.</span>
+<span class="sd">            step (Any): Determines the increment between each index for slicing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="c1"># first, second, third</span>
         <span class="k">if</span> <span class="n">stop</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">step</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># slice treats 1 arg as stop not start</span>
             <span class="n">stop</span> <span class="o">=</span> <span class="n">start</span>
             <span class="n">start</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">:</span> <span class="n">UID</span> <span class="o">=</span> <span class="nb">id</span> <span class="k">if</span> <span class="nb">id</span> <span class="k">else</span> <span class="n">UID</span><span class="p">()</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UID</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;We reveal PyPrimitive.id as a property to discourage users and</span>
-<span class="sd">        developers of Syft from modifying .id attributes after an object</span>
-<span class="sd">        has been initialized.</span>
-
-<span class="sd">        :return: returns the unique id of the object</span>
-<span class="sd">        :rtype: UID</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SyPrimitiveRet</span><span class="p">:</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compare if self == other.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            other (Any): Object to be compared.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            SyPrimitiveRet: returns a PySyft boolean format checking if self == other.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">upcast</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">PrimitiveFactory</span><span class="o">.</span><span class="n">generate_primitive</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">res</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SyPrimitiveRet</span><span class="p">:</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="fm">__ge__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compare if self &gt;= other.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            other (Any): Object to be compared.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            SyPrimitiveRet: returns a PySyft boolean format checking if self &gt;= other.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="fm">__ge__</span><span class="p">(</span><span class="n">upcast</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>  <span class="c1"># type: ignore</span>
         <span class="k">return</span> <span class="n">PrimitiveFactory</span><span class="o">.</span><span class="n">generate_primitive</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">res</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SyPrimitiveRet</span><span class="p">:</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="fm">__gt__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compare if self &gt; other.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            other (Any): Object to be compared.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            SyPrimitiveRet: returns a PySyft boolean format checking if self &gt; other.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="fm">__gt__</span><span class="p">(</span><span class="n">upcast</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>  <span class="c1"># type: ignore</span>
         <span class="k">return</span> <span class="n">PrimitiveFactory</span><span class="o">.</span><span class="n">generate_primitive</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">res</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SyPrimitiveRet</span><span class="p">:</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="fm">__le__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compare if self &lt;= other.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            other (Any): Object to be compared.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            SyPrimitiveRet: returns a PySyft boolean format checking if self &lt;= other.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="fm">__le__</span><span class="p">(</span><span class="n">upcast</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>  <span class="c1"># type: ignore</span>
         <span class="k">return</span> <span class="n">PrimitiveFactory</span><span class="o">.</span><span class="n">generate_primitive</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">res</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SyPrimitiveRet</span><span class="p">:</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="fm">__lt__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compare if self &lt; other.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            other (Any): Object to be compared.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            SyPrimitiveRet: returns a PySyft boolean format checking if self &lt; other.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="fm">__lt__</span><span class="p">(</span><span class="n">upcast</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>  <span class="c1"># type: ignore</span>
         <span class="k">return</span> <span class="n">PrimitiveFactory</span><span class="o">.</span><span class="n">generate_primitive</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">res</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SyPrimitiveRet</span><span class="p">:</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="fm">__ne__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compare if self != other.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            other (Any): Object to be compared.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            SyPrimitiveRet: returns a PySyft boolean format checking if self != other.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="fm">__ne__</span><span class="p">(</span><span class="n">upcast</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">PrimitiveFactory</span><span class="o">.</span><span class="n">generate_primitive</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">res</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Slice&#39;s string representation</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: The string representation of this Slice object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Slice.indices"><a class="viewcode-back" href="../../../../api_reference/syft.lib.python.html#syft.lib.python.Slice.indices">[docs]</a>    <span class="k">def</span> <span class="nf">indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Assuming a sequence of length len, calculate the start and stop</span>
+<span class="sd">        indices, and the stride length of the extended slice described by</span>
+<span class="sd">        the Slice object. Out of bounds indices are clipped in</span>
+<span class="sd">        a manner consistent with the handling of normal slices.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            index (int): Input index.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple: A tuple of concrete indices for a range of length len.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">PrimitiveFactory</span><span class="o">.</span><span class="n">generate_primitive</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">res</span><span class="p">)</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Index/position where the slicing of the object starts.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Index where the slicing starts.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">start</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Increment between each index for slicing.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Slices&#39; increment value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">step</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Index/position which the slicing takes place.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Slices&#39; stop value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">stop</span>
 
 <div class="viewcode-block" id="Slice.upcast"><a class="viewcode-back" href="../../../../api_reference/syft.lib.python.html#syft.lib.python.Slice.upcast">[docs]</a>    <span class="k">def</span> <span class="nf">upcast</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">slice</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the standard python slice object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            slice: returns a default python slice object represented by this object instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span></div>
 
     <span class="k">def</span> <span class="nf">_object2proto</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Slice_PB</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Serialize  the Slice object instance returning a protobuf.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Slice_PB: returns a protobuf object class representing this Slice object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">slice_pb</span> <span class="o">=</span> <span class="n">Slice_PB</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">:</span>
             <span class="n">slice_pb</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span>
@@ -276,13 +375,18 @@
             <span class="n">slice_pb</span><span class="o">.</span><span class="n">step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span>
             <span class="n">slice_pb</span><span class="o">.</span><span class="n">has_step</span> <span class="o">=</span> <span class="kc">True</span>
 
-        <span class="n">slice_pb</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">CopyFrom</span><span class="p">(</span><span class="n">serialize</span><span class="p">(</span><span class="n">obj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">))</span>
-
         <span class="k">return</span> <span class="n">slice_pb</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="p">:</span> <span class="n">Slice_PB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Slice&quot;</span><span class="p">:</span>
-        <span class="n">id_</span><span class="p">:</span> <span class="n">UID</span> <span class="o">=</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deserialize a protobuf object creating a new Slice object instance.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            proto (Slice_PB): Protobuf object representing a serialized slice object.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Slice: PySyft Slice object instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">start</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">stop</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">step</span> <span class="o">=</span> <span class="kc">None</span>
@@ -299,11 +403,16 @@
             <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span>
             <span class="n">stop</span><span class="o">=</span><span class="n">stop</span><span class="p">,</span>
             <span class="n">step</span><span class="o">=</span><span class="n">step</span><span class="p">,</span>
-            <span class="nb">id</span><span class="o">=</span><span class="n">id_</span><span class="p">,</span>
         <span class="p">)</span>
 
 <div class="viewcode-block" id="Slice.get_protobuf_schema"><a class="viewcode-back" href="../../../../api_reference/syft.lib.python.html#syft.lib.python.Slice.get_protobuf_schema">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_protobuf_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">GeneratedProtocolMessageType</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the proper Slice protobuf schema.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Slice_PB: Returns the Slice&#39;s Protobuf class definition.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">Slice_PB</span></div>
 </pre></div>
 

@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -261,7 +267,7 @@
 <span class="c1"># third party</span>
 <span class="kn">from</span> <span class="nn">google.protobuf.reflection</span> <span class="kn">import</span> <span class="n">GeneratedProtocolMessageType</span>
 
-<span class="c1"># syft relative</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">...logger</span> <span class="kn">import</span> <span class="n">debug</span>
 <span class="kn">from</span> <span class="nn">...logger</span> <span class="kn">import</span> <span class="n">traceback_and_raise</span>
 <span class="kn">from</span> <span class="nn">...proto.core.io.route_pb2</span> <span class="kn">import</span> <span class="n">SoloRoute</span> <span class="k">as</span> <span class="n">SoloRoute_PB</span>
@@ -269,6 +275,9 @@
 <span class="kn">from</span> <span class="nn">..common.message</span> <span class="kn">import</span> <span class="n">SignedImmediateSyftMessageWithReply</span>
 <span class="kn">from</span> <span class="nn">..common.message</span> <span class="kn">import</span> <span class="n">SignedImmediateSyftMessageWithoutReply</span>
 <span class="kn">from</span> <span class="nn">..common.object</span> <span class="kn">import</span> <span class="n">ObjectWithID</span>
+<span class="kn">from</span> <span class="nn">..common.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span>
+<span class="kn">from</span> <span class="nn">..common.serde.serializable</span> <span class="kn">import</span> <span class="n">serializable</span>
+<span class="kn">from</span> <span class="nn">..common.serde.serialize</span> <span class="kn">import</span> <span class="n">_serialize</span>
 <span class="kn">from</span> <span class="nn">.connection</span> <span class="kn">import</span> <span class="n">BidirectionalConnection</span>
 <span class="kn">from</span> <span class="nn">.connection</span> <span class="kn">import</span> <span class="n">ClientConnection</span>
 <span class="kn">from</span> <span class="nn">.location</span> <span class="kn">import</span> <span class="n">Location</span>
@@ -277,7 +286,7 @@
 
 
 <div class="viewcode-block" id="RouteSchema"><a class="viewcode-back" href="../../../../api_reference/syft.core.io.route.html#syft.core.io.route.RouteSchema">[docs]</a><span class="k">class</span> <span class="nc">RouteSchema</span><span class="p">(</span><span class="n">ObjectWithID</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;An object which contains the IDs of the origin node and</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An object which contains the IDs of the origin node and</span>
 <span class="sd">    set of the destination node. Multiple routes can subscribe</span>
 <span class="sd">    to the same RouteSchema and routing, logic is thus split into</span>
 <span class="sd">    two groups of functionality:</span>
@@ -304,25 +313,33 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pprint</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">icon</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">class_name</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">icon</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
 
     <span class="k">def</span> <span class="nf">send_immediate_msg_without_reply</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="n">SignedImmediateSyftMessageWithoutReply</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">msg</span><span class="p">:</span> <span class="n">SignedImmediateSyftMessageWithoutReply</span><span class="p">,</span>
+        <span class="n">timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">traceback_and_raise</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">send_immediate_msg_with_reply</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="n">SignedImmediateSyftMessageWithReply</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">msg</span><span class="p">:</span> <span class="n">SignedImmediateSyftMessageWithReply</span><span class="p">,</span>
+        <span class="n">timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">return_signed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SignedImmediateSyftMessageWithoutReply</span><span class="p">:</span>
         <span class="n">traceback_and_raise</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">send_eventual_msg_without_reply</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="n">SignedEventualSyftMessageWithoutReply</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">msg</span><span class="p">:</span> <span class="n">SignedEventualSyftMessageWithoutReply</span><span class="p">,</span>
+        <span class="n">timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">traceback_and_raise</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="SoloRoute"><a class="viewcode-back" href="../../../../api_reference/syft.core.io.route.html#syft.core.io.route.SoloRoute">[docs]</a><span class="k">class</span> <span class="nc">SoloRoute</span><span class="p">(</span><span class="n">Route</span><span class="p">):</span>
+<div class="viewcode-block" id="SoloRoute"><a class="viewcode-back" href="../../../../api_reference/syft.core.io.route.html#syft.core.io.route.SoloRoute">[docs]</a><span class="nd">@serializable</span><span class="p">()</span>
+<span class="k">class</span> <span class="nc">SoloRoute</span><span class="p">(</span><span class="n">Route</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">destination</span><span class="p">:</span> <span class="n">Location</span><span class="p">,</span>
@@ -332,35 +349,56 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">connection</span>
 
     <span class="k">def</span> <span class="nf">send_immediate_msg_without_reply</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="n">SignedImmediateSyftMessageWithoutReply</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">msg</span><span class="p">:</span> <span class="n">SignedImmediateSyftMessageWithoutReply</span><span class="p">,</span>
+        <span class="n">timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&gt; Routing </span><span class="si">{</span><span class="n">msg</span><span class="o">.</span><span class="n">pprint</span><span class="si">}</span><span class="s2"> via </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">pprint</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">send_immediate_msg_without_reply</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">send_immediate_msg_without_reply</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">send_eventual_msg_without_reply</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="n">SignedEventualSyftMessageWithoutReply</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">msg</span><span class="p">:</span> <span class="n">SignedEventualSyftMessageWithoutReply</span><span class="p">,</span>
+        <span class="n">timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">send_eventual_msg_without_reply</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">send_eventual_msg_without_reply</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">send_immediate_msg_with_reply</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="n">SignedImmediateSyftMessageWithReply</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">msg</span><span class="p">:</span> <span class="n">SignedImmediateSyftMessageWithReply</span><span class="p">,</span>
+        <span class="n">timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">return_signed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SignedImmediateSyftMessageWithoutReply</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">send_immediate_msg_with_reply</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">send_immediate_msg_with_reply</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_object2proto</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SoloRoute_PB</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">SoloRoute_PB</span><span class="p">(</span>
+        <span class="n">route</span> <span class="o">=</span> <span class="n">SoloRoute_PB</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">_object2proto</span><span class="p">(),</span>
             <span class="n">destination</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">destination</span><span class="o">.</span><span class="n">_object2proto</span><span class="p">(),</span>
-            <span class="n">connection</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">_object2proto</span><span class="p">(),</span>
         <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="p">,</span> <span class="n">VirtualClientConnection</span><span class="p">):</span>
+            <span class="n">route</span><span class="o">.</span><span class="n">virtual_connection</span><span class="o">.</span><span class="n">CopyFrom</span><span class="p">(</span>
+                <span class="n">_serialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="p">,</span> <span class="n">to_proto</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">route</span><span class="o">.</span><span class="n">grid_connection</span><span class="o">.</span><span class="n">CopyFrom</span><span class="p">(</span><span class="n">_serialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="p">,</span> <span class="n">to_proto</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">route</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="p">:</span> <span class="n">SoloRoute_PB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SoloRoute&quot;</span><span class="p">:</span>
-        <span class="n">connection</span> <span class="o">=</span> <span class="n">VirtualClientConnection</span><span class="o">.</span><span class="n">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="o">.</span><span class="n">connection</span><span class="p">)</span>
-        <span class="c1"># connection = _deserialize(blob=proto.connection, from_proto=True)</span>
-        <span class="k">return</span> <span class="n">SoloRoute</span><span class="p">(</span>
+        <span class="k">if</span> <span class="n">proto</span><span class="o">.</span><span class="n">HasField</span><span class="p">(</span><span class="s2">&quot;virtual_connection&quot;</span><span class="p">):</span>
+            <span class="n">connection</span> <span class="o">=</span> <span class="n">VirtualClientConnection</span><span class="o">.</span><span class="n">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="o">.</span><span class="n">virtual_connection</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">proto</span><span class="o">.</span><span class="n">HasField</span><span class="p">(</span><span class="s2">&quot;grid_connection&quot;</span><span class="p">):</span>
+            <span class="n">connection</span> <span class="o">=</span> <span class="n">_deserialize</span><span class="p">(</span><span class="n">proto</span><span class="o">.</span><span class="n">grid_connection</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Unsupported type of connection&quot;</span><span class="p">)</span>
+
+        <span class="n">route</span> <span class="o">=</span> <span class="n">SoloRoute</span><span class="p">(</span>
             <span class="n">destination</span><span class="o">=</span><span class="n">SpecificLocation</span><span class="o">.</span><span class="n">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="o">.</span><span class="n">destination</span><span class="p">),</span>
             <span class="n">connection</span><span class="o">=</span><span class="n">connection</span><span class="p">,</span>
         <span class="p">)</span>
+        <span class="n">route</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">_deserialize</span><span class="p">(</span><span class="n">proto</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">route</span>
 
 <div class="viewcode-block" id="SoloRoute.get_protobuf_schema"><a class="viewcode-back" href="../../../../api_reference/syft.core.io.route.html#syft.core.io.route.SoloRoute.get_protobuf_schema">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_protobuf_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">GeneratedProtocolMessageType</span><span class="p">:</span>
@@ -368,7 +406,7 @@
 
 
 <div class="viewcode-block" id="BroadcastRoute"><a class="viewcode-back" href="../../../../api_reference/syft.core.io.route.html#syft.core.io.route.BroadcastRoute">[docs]</a><span class="k">class</span> <span class="nc">BroadcastRoute</span><span class="p">(</span><span class="n">SoloRoute</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A route used for pub/sub type systems.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 

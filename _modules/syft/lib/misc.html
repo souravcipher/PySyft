@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -183,7 +189,7 @@
 <span class="kn">from</span> <span class="nn">cachetools</span> <span class="kn">import</span> <span class="n">cached</span>
 <span class="kn">from</span> <span class="nn">cachetools.keys</span> <span class="kn">import</span> <span class="n">hashkey</span>
 
-<span class="c1"># syft relative</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">...ast</span> <span class="kn">import</span> <span class="n">add_classes</span>
 <span class="kn">from</span> <span class="nn">...ast</span> <span class="kn">import</span> <span class="n">add_methods</span>
 <span class="kn">from</span> <span class="nn">...ast</span> <span class="kn">import</span> <span class="n">add_modules</span>
@@ -192,7 +198,11 @@
 <span class="kn">from</span> <span class="nn">.union</span> <span class="kn">import</span> <span class="n">lazy_pairing</span>
 
 
-<div class="viewcode-block" id="solve_ast_type_functions"><a class="viewcode-back" href="../../../api_reference/syft.lib.misc.html#syft.lib.misc.solve_ast_type_functions">[docs]</a><span class="nd">@cached</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="p">{},</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">path</span><span class="p">,</span> <span class="n">lib_ast</span><span class="p">:</span> <span class="n">hashkey</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+<div class="viewcode-block" id="get_cache"><a class="viewcode-back" href="../../../api_reference/syft.lib.misc.html#syft.lib.misc.get_cache">[docs]</a><span class="k">def</span> <span class="nf">get_cache</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="solve_ast_type_functions"><a class="viewcode-back" href="../../../api_reference/syft.lib.misc.html#syft.lib.misc.solve_ast_type_functions">[docs]</a><span class="nd">@cached</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="n">get_cache</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">path</span><span class="p">,</span> <span class="n">lib_ast</span><span class="p">:</span> <span class="n">hashkey</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
 <span class="k">def</span> <span class="nf">solve_ast_type_functions</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">lib_ast</span><span class="p">:</span> <span class="nb">globals</span><span class="o">.</span><span class="n">Globals</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">KeysView</span><span class="p">:</span>
     <span class="n">root</span> <span class="o">=</span> <span class="n">lib_ast</span>
     <span class="k">for</span> <span class="n">path_element</span> <span class="ow">in</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">):</span>
@@ -203,7 +213,7 @@
 <div class="viewcode-block" id="get_allowed_functions"><a class="viewcode-back" href="../../../api_reference/syft.lib.misc.html#syft.lib.misc.get_allowed_functions">[docs]</a><span class="k">def</span> <span class="nf">get_allowed_functions</span><span class="p">(</span>
     <span class="n">lib_ast</span><span class="p">:</span> <span class="nb">globals</span><span class="o">.</span><span class="n">Globals</span><span class="p">,</span> <span class="n">union_types</span><span class="p">:</span> <span class="n">TypeList</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This function generates a set of functions that can go into a union type.</span>
 <span class="sd">    A function has to meet the following requirements to be present on a union type:</span>
 <span class="sd">        1. If it&#39;s present on all Class attributes associated with the union types</span>

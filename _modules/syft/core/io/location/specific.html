@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -175,20 +181,20 @@
 <span class="c1"># third party</span>
 <span class="kn">from</span> <span class="nn">google.protobuf.reflection</span> <span class="kn">import</span> <span class="n">GeneratedProtocolMessageType</span>
 
-<span class="c1"># syft relative</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">....proto.core.io.location_pb2</span> <span class="kn">import</span> <span class="n">SpecificLocation</span> <span class="k">as</span> <span class="n">SpecificLocation_PB</span>
 <span class="kn">from</span> <span class="nn">....util</span> <span class="kn">import</span> <span class="n">validate_type</span>
 <span class="kn">from</span> <span class="nn">...common.object</span> <span class="kn">import</span> <span class="n">ObjectWithID</span>
 <span class="kn">from</span> <span class="nn">...common.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span>
-<span class="kn">from</span> <span class="nn">...common.serde.serializable</span> <span class="kn">import</span> <span class="n">bind_protobuf</span>
+<span class="kn">from</span> <span class="nn">...common.serde.serializable</span> <span class="kn">import</span> <span class="n">serializable</span>
 <span class="kn">from</span> <span class="nn">...common.serde.serialize</span> <span class="kn">import</span> <span class="n">_serialize</span> <span class="k">as</span> <span class="n">serialize</span>
 <span class="kn">from</span> <span class="nn">...common.uid</span> <span class="kn">import</span> <span class="n">UID</span>
 <span class="kn">from</span> <span class="nn">.location</span> <span class="kn">import</span> <span class="n">Location</span>
 
 
-<div class="viewcode-block" id="SpecificLocation"><a class="viewcode-back" href="../../../../../api_reference/syft.core.io.location.specific.html#syft.core.io.location.SpecificLocation">[docs]</a><span class="nd">@bind_protobuf</span>
+<div class="viewcode-block" id="SpecificLocation"><a class="viewcode-back" href="../../../../../api_reference/syft.core.io.location.specific.html#syft.core.io.location.SpecificLocation">[docs]</a><span class="nd">@serializable</span><span class="p">()</span>
 <span class="k">class</span> <span class="nc">SpecificLocation</span><span class="p">(</span><span class="n">ObjectWithID</span><span class="p">,</span> <span class="n">Location</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This represents the location of a single Node object</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This represents the location of a single Node object</span>
 <span class="sd">    represented by a single UID. It may not have any functionality</span>
 <span class="sd">    beyond Location but there is logic, which interprets it differently.&quot;&quot;&quot;</span>
 
@@ -202,11 +208,11 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pprint</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">icon</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">class_name</span><span class="si">}</span><span class="s2">)@</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">emoji</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">icon</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span><span class="si">}</span><span class="s2">)@</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">emoji</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="k">return</span> <span class="n">output</span>
 
     <span class="k">def</span> <span class="nf">_object2proto</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SpecificLocation_PB</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Returns a protobuf serialization of self.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a protobuf serialization of self.</span>
 
 <span class="sd">        As a requirement of all objects which inherit from Serializable,</span>
 <span class="sd">        this method transforms the current object into the corresponding</span>
@@ -224,7 +230,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="p">:</span> <span class="n">SpecificLocation_PB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SpecificLocation&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Creates a SpecificLocation from a protobuf</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a SpecificLocation from a protobuf</span>
 
 <span class="sd">        As a requirement of all objects which inherit from Serializable,</span>
 <span class="sd">        this method transforms a protobuf object into an instance of this class.</span>
@@ -241,7 +247,7 @@
 
 <div class="viewcode-block" id="SpecificLocation.get_protobuf_schema"><a class="viewcode-back" href="../../../../../api_reference/syft.core.io.location.specific.html#syft.core.io.location.SpecificLocation.get_protobuf_schema">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_protobuf_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">GeneratedProtocolMessageType</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
 
 <span class="sd">        As a part of serialization and deserialization, we need the ability to</span>
 <span class="sd">        lookup the protobuf object type directly from the object type. This</span>

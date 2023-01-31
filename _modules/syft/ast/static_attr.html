@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -175,15 +181,14 @@
 <span class="c1"># stdlib</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span> <span class="k">as</span> <span class="n">CallableT</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
 
-<span class="c1"># syft relative</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">ast</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">lib</span>
 <span class="kn">from</span> <span class="nn">..core.common.pointer</span> <span class="kn">import</span> <span class="n">AbstractPointer</span>
+<span class="kn">from</span> <span class="nn">..core.common.uid</span> <span class="kn">import</span> <span class="n">UID</span>
 <span class="kn">from</span> <span class="nn">..core.node.common.action.get_or_set_static_attribute_action</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">GetSetStaticAttributeAction</span><span class="p">,</span>
 <span class="p">)</span>
@@ -194,7 +199,7 @@
 
 
 <div class="viewcode-block" id="StaticAttribute"><a class="viewcode-back" href="../../../api_reference/syft.ast.static_attr.html#syft.ast.static_attr.StaticAttribute">[docs]</a><span class="k">class</span> <span class="nc">StaticAttribute</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">attribute</span><span class="o">.</span><span class="n">Attribute</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A method, function, or constructor which can be directly executed.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A method, function, or constructor which can be directly executed.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="StaticAttribute.__init__"><a class="viewcode-back" href="../../../api_reference/syft.ast.static_attr.html#syft.ast.static_attr.StaticAttribute.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -203,7 +208,7 @@
         <span class="n">return_type_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Base constructor.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Base constructor.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            parent: The parent node is needed.</span>
@@ -219,7 +224,7 @@
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="StaticAttribute.get_remote_value"><a class="viewcode-back" href="../../../api_reference/syft.ast.static_attr.html#syft.ast.static_attr.StaticAttribute.get_remote_value">[docs]</a>    <span class="k">def</span> <span class="nf">get_remote_value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AbstractPointer</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Remote execution is performed when AST is constructed with a client.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remote execution is performed when AST is constructed with a client.</span>
 
 <span class="sd">        The get_remote_value method triggers GetSetStaticAttributeAction on the AST.</span>
 
@@ -256,7 +261,7 @@
         <span class="k">return</span> <span class="n">ptr</span></div>
 
 <div class="viewcode-block" id="StaticAttribute.solve_get_value"><a class="viewcode-back" href="../../../api_reference/syft.ast.static_attr.html#syft.ast.static_attr.StaticAttribute.solve_get_value">[docs]</a>    <span class="k">def</span> <span class="nf">solve_get_value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Local execution of the getter function is performed.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Local execution of the getter function is performed.</span>
 
 <span class="sd">        The `solve_get_value` method executes the getter function on the AST.</span>
 
@@ -274,7 +279,7 @@
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">object_ref</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_and_name</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="StaticAttribute.solve_set_value"><a class="viewcode-back" href="../../../api_reference/syft.ast.static_attr.html#syft.ast.static_attr.StaticAttribute.solve_set_value">[docs]</a>    <span class="k">def</span> <span class="nf">solve_set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">set_value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Local execution of setter function is performed.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Local execution of setter function is performed.</span>
 
 <span class="sd">        The `solve_set_value` method executes the setter function on the AST.</span>
 
@@ -293,7 +298,7 @@
         <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">object_ref</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_and_name</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">set_value</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="StaticAttribute.set_remote_value"><a class="viewcode-back" href="../../../api_reference/syft.ast.static_attr.html#syft.ast.static_attr.StaticAttribute.set_remote_value">[docs]</a>    <span class="k">def</span> <span class="nf">set_remote_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">set_arg</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Remote execution of setter function is performed when AST is constructed with a client.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remote execution of setter function is performed when AST is constructed with a client.</span>
 
 <span class="sd">        The set_remote_value method triggers GetSetStaticAttributeAction on the AST.</span>
 
@@ -317,7 +322,9 @@
 
         <span class="n">resolved_pointer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">lib_ast</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">return_type_name</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">resolved_pointer_type</span><span class="o">.</span><span class="n">pointer_type</span><span class="p">(</span><span class="n">client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="p">)</span>
-        <span class="n">result_id_at_location</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s2">&quot;id_at_location&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">result_id_at_location</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UID</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s2">&quot;id_at_location&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">result_id_at_location</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Can&#39;t get remote value if there is no id_at_location&quot;</span><span class="p">)</span>
 
         <span class="n">downcasted_set_arg</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">python</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">downcast</span><span class="p">(</span><span class="n">set_arg</span><span class="p">)</span>
         <span class="n">downcasted_set_arg_ptr</span> <span class="o">=</span> <span class="n">downcasted_set_arg</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="p">)</span>
@@ -335,7 +342,7 @@
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>  <span class="c1"># type: ignore</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">StaticAttributeAction</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="s2">&quot;ast.callable.Callable&quot;</span><span class="p">,</span> <span class="n">CallableT</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;A `StaticAttribute` attribute is not callable.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A `StaticAttribute` attribute is not callable.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            action: `GET` or `SET` action</span>
@@ -345,8 +352,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;MAKE PROPER SCHEMA, THIS SHOULD NEVER BE CALLED&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="StaticAttribute.add_path"><a class="viewcode-back" href="../../../api_reference/syft.ast.static_attr.html#syft.ast.static_attr.StaticAttribute.add_path">[docs]</a>    <span class="k">def</span> <span class="nf">add_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
-        <span class="sd">&quot;&quot;&quot;An `StaticAttribute` can no longer have children nodes.</span>
+<div class="viewcode-block" id="StaticAttribute.add_path"><a class="viewcode-back" href="../../../api_reference/syft.ast.static_attr.html#syft.ast.static_attr.StaticAttribute.add_path">[docs]</a>    <span class="k">def</span> <span class="nf">add_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;An `StaticAttribute` can no longer have children nodes.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            *args: List of arguments.</span>

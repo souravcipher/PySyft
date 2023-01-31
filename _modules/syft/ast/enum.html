@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -177,7 +183,7 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
-<span class="c1"># syft relative</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">ast</span>
 <span class="kn">from</span> <span class="nn">..core.common.pointer</span> <span class="kn">import</span> <span class="n">AbstractPointer</span>
 <span class="kn">from</span> <span class="nn">..core.node.abstract.node</span> <span class="kn">import</span> <span class="n">AbstractNodeClient</span>
@@ -186,7 +192,7 @@
 
 
 <div class="viewcode-block" id="EnumAttribute"><a class="viewcode-back" href="../../../api_reference/syft.ast.enum.html#syft.ast.enum.EnumAttribute">[docs]</a><span class="k">class</span> <span class="nc">EnumAttribute</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">attribute</span><span class="o">.</span><span class="n">Attribute</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;An EnumAttribute represents the attributes of a Python Enum which are only gettable, not settable.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An EnumAttribute represents the attributes of a Python Enum which are only gettable, not settable.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="EnumAttribute.__init__"><a class="viewcode-back" href="../../../api_reference/syft.ast.enum.html#syft.ast.enum.EnumAttribute.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -195,7 +201,7 @@
         <span class="n">return_type_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">AbstractNodeClient</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Base constructor for Enum Attribute.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Base constructor for Enum Attribute.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            parent: The parent node is needed when solving `EnumAttributes`.</span>
@@ -211,7 +217,7 @@
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="EnumAttribute.get_remote_enum_attribute"><a class="viewcode-back" href="../../../api_reference/syft.ast.enum.html#syft.ast.enum.EnumAttribute.get_remote_enum_attribute">[docs]</a>    <span class="k">def</span> <span class="nf">get_remote_enum_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AbstractPointer</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Remote getter on an `Enum` attribute in the AST.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remote getter on an `Enum` attribute in the AST.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            ValueError: Cannot get Enum attribute.</span>
@@ -250,7 +256,7 @@
         <span class="k">return</span> <span class="n">ptr</span></div>
 
 <div class="viewcode-block" id="EnumAttribute.solve_get_enum_attribute"><a class="viewcode-back" href="../../../api_reference/syft.ast.enum.html#syft.ast.enum.EnumAttribute.solve_get_enum_attribute">[docs]</a>    <span class="k">def</span> <span class="nf">solve_get_enum_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Enum</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Local getter on an `Enum` attribute in the AST.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Local getter on an `Enum` attribute in the AST.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            ValueError: Cannot get Enum attribute.</span>
@@ -269,7 +275,7 @@
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">object_ref</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;An `Enum` attribute is not callable.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;An `Enum` attribute is not callable.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            *args: Variable length argument list.</span>
@@ -283,7 +289,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="EnumAttribute.add_path"><a class="viewcode-back" href="../../../api_reference/syft.ast.enum.html#syft.ast.enum.EnumAttribute.add_path">[docs]</a>    <span class="k">def</span> <span class="nf">add_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;An `Enum` can no longer have children nodes.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;An `Enum` can no longer have children nodes.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            *args: Variable length argument list.</span>

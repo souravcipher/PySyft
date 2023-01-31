@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -173,20 +179,27 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
-<span class="c1"># syft relative</span>
-<span class="kn">from</span> <span class="nn">...core.common.uid</span> <span class="kn">import</span> <span class="n">UID</span>
+<span class="c1"># third party</span>
+<span class="kn">from</span> <span class="nn">google.protobuf.reflection</span> <span class="kn">import</span> <span class="n">GeneratedProtocolMessageType</span>
+
+<span class="c1"># relative</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">python</span> <span class="k">as</span> <span class="n">py</span>
+<span class="kn">from</span> <span class="nn">...core.common.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span> <span class="k">as</span> <span class="n">deserialize</span>
+<span class="kn">from</span> <span class="nn">...core.common.serde.serializable</span> <span class="kn">import</span> <span class="n">serializable</span>
+<span class="kn">from</span> <span class="nn">...core.common.serde.serialize</span> <span class="kn">import</span> <span class="n">_serialize</span> <span class="k">as</span> <span class="n">serialize</span>
 <span class="kn">from</span> <span class="nn">...logger</span> <span class="kn">import</span> <span class="n">traceback_and_raise</span>
+<span class="kn">from</span> <span class="nn">...proto.lib.python.iterator_pb2</span> <span class="kn">import</span> <span class="n">Iterator</span> <span class="k">as</span> <span class="n">Iterator_PB</span>
 <span class="kn">from</span> <span class="nn">.primitive_factory</span> <span class="kn">import</span> <span class="n">PrimitiveFactory</span>
 <span class="kn">from</span> <span class="nn">.primitive_interface</span> <span class="kn">import</span> <span class="n">PyPrimitive</span>
 <span class="kn">from</span> <span class="nn">.types</span> <span class="kn">import</span> <span class="n">SyPrimitiveRet</span>
 
 
-<div class="viewcode-block" id="Iterator"><a class="viewcode-back" href="../../../../api_reference/syft.lib.python.html#syft.lib.python.iterator.Iterator">[docs]</a><span class="k">class</span> <span class="nc">Iterator</span><span class="p">(</span><span class="n">PyPrimitive</span><span class="p">):</span>
+<div class="viewcode-block" id="Iterator"><a class="viewcode-back" href="../../../../api_reference/syft.lib.python.html#syft.lib.python.iterator.Iterator">[docs]</a><span class="nd">@serializable</span><span class="p">()</span>
+<span class="k">class</span> <span class="nc">Iterator</span><span class="p">(</span><span class="n">PyPrimitive</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_ref</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">max_len</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_obj_ref</span> <span class="o">=</span> <span class="n">_ref</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">UID</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_len</span> <span class="o">=</span> <span class="n">max_len</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">exhausted</span> <span class="o">=</span> <span class="kc">False</span>
 
@@ -241,7 +254,7 @@
             <span class="n">exhausted</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;exhausted&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
             <span class="n">self_index</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_index&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">max_len</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">self_index</span> <span class="o">&gt;=</span> <span class="n">max_len</span><span class="p">)</span> <span class="ow">or</span> <span class="n">exhausted</span><span class="p">:</span>
-                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;exhausted&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">exhausted</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">raise</span> <span class="ne">StopIteration</span>
 
             <span class="k">try</span><span class="p">:</span>
@@ -272,13 +285,13 @@
                     <span class="c1"># collections.abc.* KeysView, ValuesView, ItemsView end up here</span>
                     <span class="c1"># they do not have __next__ or __getitem__ but they do have __iter__</span>
                     <span class="c1"># so we can just replace our self._obj_ref and keep going</span>
-                    <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_obj_ref&quot;</span><span class="p">,</span> <span class="n">_obj_ref</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">())</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_obj_ref</span> <span class="o">=</span> <span class="n">_obj_ref</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
                     <span class="c1"># obj = next(self._obj_ref) # just call self.__next__() instead</span>
                     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__next__</span><span class="p">()</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t iterate through given object.&quot;</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">StopIteration</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;exhausted&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">exhausted</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">raise</span> <span class="n">e</span>
 
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_index&quot;</span><span class="p">):</span>
@@ -288,7 +301,46 @@
             <span class="k">raise</span> <span class="n">e</span>
 
 <div class="viewcode-block" id="Iterator.upcast"><a class="viewcode-back" href="../../../../api_reference/syft.lib.python.html#syft.lib.python.iterator.Iterator.upcast">[docs]</a>    <span class="k">def</span> <span class="nf">upcast</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_obj_ref</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_obj_ref</span><span class="p">)</span></div>
+
+    <span class="c1"># TODO: Fix based on message from Tudor Cebere</span>
+    <span class="c1"># So, when we add a new builtin type we want to have feature parity with cython ones.</span>
+    <span class="c1"># When we tried to do this for iterators in the early days we had some problems when the iterators are infinite</span>
+    <span class="c1"># (most likely an iterator from a generator). This pattern is common in functional programming, when you use</span>
+    <span class="c1"># infinite iterators for different purposes. I then said that it makes sense to force the user to exhaust the</span>
+    <span class="c1"># iterator himself and then to serde the type. Here, it might be a bit problematic because somebody might slip</span>
+    <span class="c1"># in this kind of iterator and when we exhaust it (through list conversion), we go into infinite computation.</span>
+    <span class="c1"># And there are similar edge cases to this.</span>
+
+    <span class="k">def</span> <span class="nf">_object2proto</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator_PB</span><span class="p">:</span>
+        <span class="n">obj_ref_</span> <span class="o">=</span> <span class="n">serialize</span><span class="p">(</span><span class="n">py</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_obj_ref</span><span class="p">)),</span> <span class="n">to_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">index_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span>
+        <span class="n">max_len_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_len</span>
+        <span class="n">exhausted_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">exhausted</span>
+        <span class="k">return</span> <span class="n">Iterator_PB</span><span class="p">(</span>
+            <span class="n">obj_ref</span><span class="o">=</span><span class="n">obj_ref_</span><span class="p">,</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">index_</span><span class="p">,</span>
+            <span class="n">max_len</span><span class="o">=</span><span class="n">max_len_</span><span class="p">,</span>
+            <span class="n">exhausted</span><span class="o">=</span><span class="n">exhausted_</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="p">:</span> <span class="n">Iterator_PB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Iterator&quot;</span><span class="p">:</span>
+        <span class="n">obj_ref_</span> <span class="o">=</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">obj_ref</span><span class="p">,</span> <span class="n">from_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">index_</span> <span class="o">=</span> <span class="n">proto</span><span class="o">.</span><span class="n">index</span>
+        <span class="n">max_len_</span> <span class="o">=</span> <span class="n">proto</span><span class="o">.</span><span class="n">max_len</span>
+        <span class="n">exhausted_</span> <span class="o">=</span> <span class="n">proto</span><span class="o">.</span><span class="n">exhausted</span>
+
+        <span class="n">new_iter</span> <span class="o">=</span> <span class="n">Iterator</span><span class="p">(</span><span class="n">_ref</span><span class="o">=</span><span class="n">obj_ref_</span><span class="p">,</span> <span class="n">max_len</span><span class="o">=</span><span class="n">max_len_</span><span class="p">)</span>
+
+        <span class="n">new_iter</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="n">index_</span>
+        <span class="n">new_iter</span><span class="o">.</span><span class="n">exhausted</span> <span class="o">=</span> <span class="n">exhausted_</span>
+
+        <span class="k">return</span> <span class="n">new_iter</span>
+
+<div class="viewcode-block" id="Iterator.get_protobuf_schema"><a class="viewcode-back" href="../../../../api_reference/syft.lib.python.html#syft.lib.python.iterator.Iterator.get_protobuf_schema">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_protobuf_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">GeneratedProtocolMessageType</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Iterator_PB</span></div></div>
 </pre></div>
 
               </div>

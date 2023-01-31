@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -179,12 +185,12 @@
 <span class="kn">from</span> <span class="nn">packaging</span> <span class="kn">import</span> <span class="n">version</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 
-<span class="c1"># syft relative</span>
-<span class="kn">from</span> <span class="nn">...generate_wrapper</span> <span class="kn">import</span> <span class="n">GenerateWrapper</span>
-<span class="kn">from</span> <span class="nn">...lib.util</span> <span class="kn">import</span> <span class="n">full_name_with_name</span>
+<span class="c1"># relative</span>
+<span class="kn">from</span> <span class="nn">...core.common.serde.serializable</span> <span class="kn">import</span> <span class="n">serializable</span>
 <span class="kn">from</span> <span class="nn">...proto.lib.torch.returntypes_pb2</span> <span class="kn">import</span> <span class="n">ReturnTypes</span> <span class="k">as</span> <span class="n">ReturnTypes_PB</span>
-<span class="kn">from</span> <span class="nn">..torch.tensor_util</span> <span class="kn">import</span> <span class="n">tensor_deserializer</span>
-<span class="kn">from</span> <span class="nn">..torch.tensor_util</span> <span class="kn">import</span> <span class="n">tensor_serializer</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">full_name_with_name</span>
+<span class="kn">from</span> <span class="nn">.tensor_util</span> <span class="kn">import</span> <span class="n">tensor_deserializer</span>
+<span class="kn">from</span> <span class="nn">.tensor_util</span> <span class="kn">import</span> <span class="n">tensor_serializer</span>
 
 <span class="c1"># TODO: a better way. Loot at https://github.com/OpenMined/PySyft/issues/5249</span>
 <span class="n">module_type</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">torch</span><span class="p">)</span>
@@ -217,36 +223,42 @@
         <span class="n">cummin</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">cummin</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">supported_types</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">cummin</span><span class="p">)]</span> <span class="o">=</span> <span class="n">get_field_names</span><span class="p">(</span><span class="n">cummin</span><span class="p">)</span>
 
+    <span class="c1"># deprecated in torch==1.10.0</span>
     <span class="c1"># eig = x.eig(True)</span>
     <span class="c1"># supported_types[type(eig)] = get_field_names(eig)</span>
 
     <span class="n">kthvalue</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">kthvalue</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">supported_types</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">kthvalue</span><span class="p">)]</span> <span class="o">=</span> <span class="n">get_field_names</span><span class="p">(</span><span class="n">kthvalue</span><span class="p">)</span>
 
+    <span class="c1"># deprecated in torch==1.10.0</span>
     <span class="c1"># lstsq = A.lstsq(B)</span>
     <span class="c1"># supported_types[type(lstsq)] = get_field_names(lstsq)</span>
 
     <span class="n">slogdet</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">slogdet</span><span class="p">()</span>
     <span class="n">supported_types</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">slogdet</span><span class="p">)]</span> <span class="o">=</span> <span class="n">get_field_names</span><span class="p">(</span><span class="n">slogdet</span><span class="p">)</span>
 
+    <span class="c1"># deprecated in torch==1.10.0</span>
     <span class="c1"># qr = x.qr()</span>
     <span class="c1"># supported_types[type(qr)] = get_field_names(qr)</span>
 
     <span class="n">mode</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">mode</span><span class="p">()</span>
     <span class="n">supported_types</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">mode</span><span class="p">)]</span> <span class="o">=</span> <span class="n">get_field_names</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
 
+    <span class="c1"># deprecated in torch==1.10.0</span>
     <span class="c1"># solve = s.solve(s)</span>
     <span class="c1"># supported_types[type(solve)] = get_field_names(solve)</span>
 
     <span class="n">sort</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
     <span class="n">supported_types</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">sort</span><span class="p">)]</span> <span class="o">=</span> <span class="n">get_field_names</span><span class="p">(</span><span class="n">sort</span><span class="p">)</span>
 
+    <span class="c1"># deprecated in torch==1.10.0</span>
     <span class="c1"># symeig = s.symeig()</span>
     <span class="c1"># supported_types[type(symeig)] = get_field_names(symeig)</span>
 
     <span class="n">topk</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">supported_types</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">topk</span><span class="p">)]</span> <span class="o">=</span> <span class="n">get_field_names</span><span class="p">(</span><span class="n">topk</span><span class="p">)</span>
 
+    <span class="c1"># deprecated in torch==1.11.0</span>
     <span class="c1"># triangular_solve = s.triangular_solve(s)</span>
     <span class="c1"># supported_types[type(triangular_solve)] = get_field_names(triangular_solve)</span>
 
@@ -284,7 +296,7 @@
         <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="n">tensor_deserializer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">proto</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">typ</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
 
-    <span class="n">GenerateWrapper</span><span class="p">(</span>
+    <span class="n">serializable</span><span class="p">(</span><span class="n">generate_wrapper</span><span class="o">=</span><span class="kc">True</span><span class="p">)(</span>
         <span class="n">wrapped_type</span><span class="o">=</span><span class="n">typ</span><span class="p">,</span>
         <span class="n">import_path</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">typ</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">typ</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
         <span class="n">protobuf_scheme</span><span class="o">=</span><span class="n">ReturnTypes_PB</span><span class="p">,</span>

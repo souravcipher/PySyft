@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -176,20 +182,20 @@
 <span class="kn">from</span> <span class="nn">google.protobuf.message</span> <span class="kn">import</span> <span class="n">Message</span>
 <span class="kn">from</span> <span class="nn">google.protobuf.reflection</span> <span class="kn">import</span> <span class="n">GeneratedProtocolMessageType</span>
 
-<span class="c1"># syft relative</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">....logger</span> <span class="kn">import</span> <span class="n">traceback_and_raise</span>
-<span class="kn">from</span> <span class="nn">...common.serde.serializable</span> <span class="kn">import</span> <span class="n">Serializable</span>
+<span class="kn">from</span> <span class="nn">....util</span> <span class="kn">import</span> <span class="n">random_name</span>
 <span class="kn">from</span> <span class="nn">...common.uid</span> <span class="kn">import</span> <span class="n">UID</span>
 
 
-<div class="viewcode-block" id="Location"><a class="viewcode-back" href="../../../../../api_reference/syft.core.io.location.location.html#syft.core.io.location.Location">[docs]</a><span class="k">class</span> <span class="nc">Location</span><span class="p">(</span><span class="n">Serializable</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This represents the location of a node, including</span>
+<div class="viewcode-block" id="Location"><a class="viewcode-back" href="../../../../../api_reference/syft.core.io.location.location.html#syft.core.io.location.Location">[docs]</a><span class="k">class</span> <span class="nc">Location</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This represents the location of a node, including</span>
 <span class="sd">    location-relevant metadata (such as how long it takes</span>
 <span class="sd">    for us to communicate with this location, etc.)&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="n">Serializable</span><span class="o">.</span><span class="n">random_name</span><span class="p">()</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">random_name</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
@@ -198,7 +204,7 @@
         <span class="n">traceback_and_raise</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Location.repr_short"><a class="viewcode-back" href="../../../../../api_reference/syft.core.io.location.location.html#syft.core.io.location.Location.repr_short">[docs]</a>    <span class="k">def</span> <span class="nf">repr_short</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Returns a SHORT human-readable version of the ID</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a SHORT human-readable version of the ID</span>
 
 <span class="sd">        Return a SHORT human-readable version of the ID which</span>
 <span class="sd">        makes it print nicer when embedded (often alongside other</span>
@@ -207,8 +213,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span></div>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="p">:</span> <span class="n">Message</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Serializable&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;This method converts a protobuf object into a subclass of Serializable</span>
+    <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="p">:</span> <span class="n">Message</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Location&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;This method converts a protobuf object into a subclass of Serializable</span>
 
 <span class="sd">        This method must be implemented for all classes which subclassSerializable - namely</span>
 <span class="sd">        all classes which can be serialized within the Syft ecosystem. It should convert the</span>
@@ -225,7 +231,7 @@
         <span class="n">traceback_and_raise</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_object2proto</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Message</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;This methods converts self into a protobuf object</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;This methods converts self into a protobuf object</span>
 
 <span class="sd">        This method must be implemented by all subclasses so that generic high-level functions</span>
 <span class="sd">        implemented here (such as serialize(, to_bytes=True), etc) know how to convert the object into</span>
@@ -239,7 +245,7 @@
 
 <div class="viewcode-block" id="Location.get_protobuf_schema"><a class="viewcode-back" href="../../../../../api_reference/syft.core.io.location.location.html#syft.core.io.location.Location.get_protobuf_schema">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_protobuf_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">GeneratedProtocolMessageType</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
 
 <span class="sd">        As a part of serialization and deserialization, we need the ability to</span>
 <span class="sd">        lookup the protobuf object type directly from the object type. This</span>

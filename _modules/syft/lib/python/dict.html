@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -183,11 +189,10 @@
 <span class="c1"># third party</span>
 <span class="kn">from</span> <span class="nn">google.protobuf.reflection</span> <span class="kn">import</span> <span class="n">GeneratedProtocolMessageType</span>
 
-<span class="c1"># syft relative</span>
-<span class="kn">from</span> <span class="nn">...</span> <span class="kn">import</span> <span class="n">deserialize</span>
-<span class="kn">from</span> <span class="nn">...</span> <span class="kn">import</span> <span class="n">serialize</span>
-<span class="kn">from</span> <span class="nn">...core.common</span> <span class="kn">import</span> <span class="n">UID</span>
-<span class="kn">from</span> <span class="nn">...core.common.serde.serializable</span> <span class="kn">import</span> <span class="n">bind_protobuf</span>
+<span class="c1"># relative</span>
+<span class="kn">from</span> <span class="nn">...core.common.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span> <span class="k">as</span> <span class="n">deserialize</span>
+<span class="kn">from</span> <span class="nn">...core.common.serde.serializable</span> <span class="kn">import</span> <span class="n">serializable</span>
+<span class="kn">from</span> <span class="nn">...core.common.serde.serialize</span> <span class="kn">import</span> <span class="n">_serialize</span> <span class="k">as</span> <span class="n">serialize</span>
 <span class="kn">from</span> <span class="nn">...logger</span> <span class="kn">import</span> <span class="n">traceback_and_raise</span>
 <span class="kn">from</span> <span class="nn">...logger</span> <span class="kn">import</span> <span class="n">warning</span>
 <span class="kn">from</span> <span class="nn">...proto.lib.python.dict_pb2</span> <span class="kn">import</span> <span class="n">Dict</span> <span class="k">as</span> <span class="n">Dict_PB</span>
@@ -200,7 +205,7 @@
 <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">upcast</span>
 
 
-<span class="nd">@bind_protobuf</span>
+<span class="nd">@serializable</span><span class="p">()</span>
 <span class="k">class</span> <span class="nc">Dict</span><span class="p">(</span><span class="n">UserDict</span><span class="p">,</span> <span class="n">PyPrimitive</span><span class="p">):</span>
     <span class="c1"># the incoming types to UserDict __init__ are overloaded and weird</span>
     <span class="c1"># see https://github.com/python/cpython/blob/master/Lib/collections/__init__.py</span>
@@ -237,25 +242,19 @@
         <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
 
-        <span class="c1"># We cant add UID from kwargs or it could easily be overwritten by the dict</span>
-        <span class="c1"># that is being passed in for __init__</span>
-        <span class="c1"># If you want to update it use the _id setter after creation.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">UID</span><span class="p">()</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UID</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;We reveal PyPrimitive.id as a property to discourage users and</span>
-<span class="sd">        developers of Syft from modifying .id attributes after an object</span>
-<span class="sd">        has been initialized.</span>
-
-<span class="sd">        :return: returns the unique id of the object</span>
-<span class="sd">        :rtype: UID</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span>
+        <span class="n">temporary_box</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;temporary_box&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;temporary_box&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="k">else</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">temporary_box</span><span class="p">:</span>
+            <span class="n">PyPrimitive</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span>
+                <span class="n">temporary_box</span><span class="o">=</span><span class="n">temporary_box</span><span class="p">,</span>
+            <span class="p">)</span>
 
 <div class="viewcode-block" id="Dict.upcast"><a class="viewcode-back" href="../../../../api_reference/syft.lib.python.html#syft.lib.python.Dict.upcast">[docs]</a>    <span class="k">def</span> <span class="nf">upcast</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TypeDict</span><span class="p">:</span>
         <span class="c1"># recursively upcast</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">upcast</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">upcast</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="k">if</span> <span class="s2">&quot;temporary_box&quot;</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;temporary_box&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">result</span></div>
 
     <span class="k">def</span> <span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SyPrimitiveRet</span><span class="p">:</span>
         <span class="n">res</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__contains__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
@@ -367,8 +366,6 @@
         <span class="k">return</span> <span class="n">PrimitiveFactory</span><span class="o">.</span><span class="n">generate_primitive</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">clear</span><span class="p">())</span></div>
 
     <span class="k">def</span> <span class="nf">_object2proto</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict_PB</span><span class="p">:</span>
-        <span class="n">id_</span> <span class="o">=</span> <span class="n">serialize</span><span class="p">(</span><span class="n">obj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
-
         <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">serialize</span><span class="p">(</span><span class="n">obj</span><span class="o">=</span><span class="n">downcast</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">element</span><span class="p">),</span> <span class="n">to_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
@@ -379,12 +376,19 @@
             <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
         <span class="p">]</span>
 
-        <span class="k">return</span> <span class="n">Dict_PB</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">id_</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="n">keys</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">values</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;temporary_box&quot;</span><span class="p">):</span>
+            <span class="n">temporary_box</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temporary_box</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">temporary_box</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="n">Dict_PB</span><span class="p">(</span>
+            <span class="n">keys</span><span class="o">=</span><span class="n">keys</span><span class="p">,</span>
+            <span class="n">values</span><span class="o">=</span><span class="n">values</span><span class="p">,</span>
+            <span class="n">temporary_box</span><span class="o">=</span><span class="n">temporary_box</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="p">:</span> <span class="n">Dict_PB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Dict&quot;</span><span class="p">:</span>
-        <span class="n">id_</span><span class="p">:</span> <span class="n">UID</span> <span class="o">=</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
-
         <span class="n">values</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">upcast</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">element</span><span class="p">,</span> <span class="n">from_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">proto</span><span class="o">.</span><span class="n">values</span>
@@ -395,7 +399,7 @@
             <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">proto</span><span class="o">.</span><span class="n">keys</span>
         <span class="p">]</span>
         <span class="n">new_dict</span> <span class="o">=</span> <span class="n">Dict</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">values</span><span class="p">)))</span>
-        <span class="n">new_dict</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">id_</span>
+        <span class="n">new_dict</span><span class="o">.</span><span class="n">temporary_box</span> <span class="o">=</span> <span class="n">proto</span><span class="o">.</span><span class="n">temporary_box</span>
         <span class="k">return</span> <span class="n">new_dict</span>
 
 <div class="viewcode-block" id="Dict.get_protobuf_schema"><a class="viewcode-back" href="../../../../api_reference/syft.lib.python.html#syft.lib.python.Dict.get_protobuf_schema">[docs]</a>    <span class="nd">@staticmethod</span>

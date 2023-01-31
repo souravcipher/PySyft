@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -169,9 +175,28 @@
               <div>
                 
   <h1>Source code for syft.experimental_flags</h1><div class="highlight"><pre>
-<div class="viewcode-block" id="ExperimentalFlags"><a class="viewcode-back" href="../../api_reference/syft.html#syft.experimental_flags.ExperimentalFlags">[docs]</a><span></span><span class="k">class</span> <span class="nc">ExperimentalFlags</span><span class="p">:</span>
+<span></span><span class="c1"># stdlib</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1"># relative</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">str_to_bool</span>
+
+
+<div class="viewcode-block" id="ApacheArrowCompression"><a class="viewcode-back" href="../../api_reference/syft.html#syft.experimental_flags.ApacheArrowCompression">[docs]</a><span class="k">class</span> <span class="nc">ApacheArrowCompression</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">ZSTD</span> <span class="o">=</span> <span class="s2">&quot;zstd&quot;</span>
+    <span class="n">LZ4</span> <span class="o">=</span> <span class="s2">&quot;lz4&quot;</span>
+    <span class="n">LZ4_RAW</span> <span class="o">=</span> <span class="s2">&quot;lz4_raw&quot;</span>
+    <span class="n">BROTLI</span> <span class="o">=</span> <span class="s2">&quot;brotli&quot;</span>
+    <span class="n">SNAPPY</span> <span class="o">=</span> <span class="s2">&quot;snappy&quot;</span>
+    <span class="n">GZIP</span> <span class="o">=</span> <span class="s2">&quot;gzip&quot;</span>
+    <span class="n">NONE</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="ExperimentalFlags"><a class="viewcode-back" href="../../api_reference/syft.html#syft.experimental_flags.ExperimentalFlags">[docs]</a><span class="k">class</span> <span class="nc">ExperimentalFlags</span><span class="p">:</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_APACHE_ARROW_TENSOR_SERDE</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_APACHE_ARROW_COMPRESSION</span> <span class="o">=</span> <span class="n">ApacheArrowCompression</span><span class="o">.</span><span class="n">ZSTD</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">APACHE_ARROW_TENSOR_SERDE</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -183,7 +208,19 @@
 
     <span class="nd">@APACHE_ARROW_TENSOR_SERDE</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">APACHE_ARROW_TENSOR_SERDE</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_APACHE_ARROW_TENSOR_SERDE</span> <span class="o">=</span> <span class="n">value</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_APACHE_ARROW_TENSOR_SERDE</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">APACHE_ARROW_COMPRESSION</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ApacheArrowCompression</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_APACHE_ARROW_COMPRESSION</span>
+
+    <span class="nd">@APACHE_ARROW_COMPRESSION</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">APACHE_ARROW_COMPRESSION</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">ApacheArrowCompression</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_APACHE_ARROW_COMPRESSION</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">USE_NEW_SERVICE</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">str_to_bool</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;USE_NEW_SERVICE&quot;</span><span class="p">,</span> <span class="s2">&quot;False&quot;</span><span class="p">))</span></div>
 
 
 <span class="n">flags</span> <span class="o">=</span> <span class="n">ExperimentalFlags</span><span class="p">()</span>

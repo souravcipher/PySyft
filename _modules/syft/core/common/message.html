@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -182,25 +188,25 @@
 <span class="kn">from</span> <span class="nn">nacl.signing</span> <span class="kn">import</span> <span class="n">SigningKey</span>
 <span class="kn">from</span> <span class="nn">nacl.signing</span> <span class="kn">import</span> <span class="n">VerifyKey</span>
 
-<span class="c1"># syft relative</span>
-<span class="kn">from</span> <span class="nn">...core.common.object</span> <span class="kn">import</span> <span class="n">ObjectWithID</span>
-<span class="kn">from</span> <span class="nn">...core.common.serde.serialize</span> <span class="kn">import</span> <span class="n">_serialize</span> <span class="k">as</span> <span class="n">serialize</span>
-<span class="kn">from</span> <span class="nn">...core.common.uid</span> <span class="kn">import</span> <span class="n">UID</span>
-<span class="kn">from</span> <span class="nn">...core.io.address</span> <span class="kn">import</span> <span class="n">Address</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">...logger</span> <span class="kn">import</span> <span class="n">debug</span>
 <span class="kn">from</span> <span class="nn">...logger</span> <span class="kn">import</span> <span class="n">traceback_and_raise</span>
 <span class="kn">from</span> <span class="nn">...proto.core.auth.signed_message_pb2</span> <span class="kn">import</span> <span class="n">SignedMessage</span> <span class="k">as</span> <span class="n">SignedMessage_PB</span>
 <span class="kn">from</span> <span class="nn">...util</span> <span class="kn">import</span> <span class="n">get_fully_qualified_name</span>
 <span class="kn">from</span> <span class="nn">...util</span> <span class="kn">import</span> <span class="n">validate_type</span>
-<span class="kn">from</span> <span class="nn">..common.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span>
-<span class="kn">from</span> <span class="nn">..common.serde.serializable</span> <span class="kn">import</span> <span class="n">bind_protobuf</span>
+<span class="kn">from</span> <span class="nn">..io.address</span> <span class="kn">import</span> <span class="n">Address</span>
+<span class="kn">from</span> <span class="nn">.object</span> <span class="kn">import</span> <span class="n">ObjectWithID</span>
+<span class="kn">from</span> <span class="nn">.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span>
+<span class="kn">from</span> <span class="nn">.serde.serializable</span> <span class="kn">import</span> <span class="n">serializable</span>
+<span class="kn">from</span> <span class="nn">.serde.serialize</span> <span class="kn">import</span> <span class="n">_serialize</span> <span class="k">as</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">.uid</span> <span class="kn">import</span> <span class="n">UID</span>
 
 <span class="c1"># this generic type for SignedMessage</span>
 <span class="n">SignedMessageT</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;SignedMessageT&quot;</span><span class="p">)</span>
 
 
 <span class="k">class</span> <span class="nc">AbstractMessage</span><span class="p">(</span><span class="n">ObjectWithID</span><span class="p">,</span> <span class="n">Generic</span><span class="p">[</span><span class="n">SignedMessageT</span><span class="p">]):</span>
-    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
 
     <span class="c1"># this should be overloaded by a subclass</span>
     <span class="n">signed_type</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">SignedMessageT</span><span class="p">]</span>
@@ -228,7 +234,7 @@
 
 
 <div class="viewcode-block" id="SyftMessage"><a class="viewcode-back" href="../../../../api_reference/syft.core.common.message.html#syft.core.common.message.SyftMessage">[docs]</a><span class="k">class</span> <span class="nc">SyftMessage</span><span class="p">(</span><span class="n">AbstractMessage</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    SyftMessages are an abstraction that represents information that is sent between a :class:`Client`</span>
 <span class="sd">    and a :class:`Node`. In Syft&#39;s decentralized setup, we can easily see why SyftMessages are so important.</span>
 <span class="sd">    This class cannot be used as-is: to get some useful objects, we need to derive from it. For instance,</span>
@@ -245,8 +251,8 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">msg_id</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">post_init</span><span class="p">()</span>
 
-<div class="viewcode-block" id="SyftMessage.sign"><a class="viewcode-back" href="../../../../api_reference/syft.core.common.message.html#syft.core.common.message.SyftMessage.sign">[docs]</a>    <span class="k">def</span> <span class="nf">sign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signing_key</span><span class="p">:</span> <span class="n">SigningKey</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SignedMessageT</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="SyftMessage.sign"><a class="viewcode-back" href="../../../../api_reference/syft.core.common.message.html#syft.core.common.message.SyftMessage.sign">[docs]</a>    <span class="k">def</span> <span class="nf">sign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signing_key</span><span class="p">:</span> <span class="n">SigningKey</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SignedMessageT</span><span class="p">:</span>  <span class="c1"># type: ignore[type-var]</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        It&#39;s important for all messages to be able to prove who they were sent from.</span>
 <span class="sd">        This method endows every message with the ability for someone to &quot;sign&quot; (with a hash of the message)</span>
 <span class="sd">        as the sender of the message so that someone else, at a later date, can verify the sender.</span>
@@ -274,9 +280,9 @@
         <span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="SignedMessage"><a class="viewcode-back" href="../../../../api_reference/syft.core.common.message.html#syft.core.common.message.SignedMessage">[docs]</a><span class="nd">@bind_protobuf</span>
+<div class="viewcode-block" id="SignedMessage"><a class="viewcode-back" href="../../../../api_reference/syft.core.common.message.html#syft.core.common.message.SignedMessage">[docs]</a><span class="nd">@serializable</span><span class="p">()</span>
 <span class="k">class</span> <span class="nc">SignedMessage</span><span class="p">(</span><span class="n">SyftMessage</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    SignedMessages are :class:`SyftMessage`s that have been signed by someone.</span>
 <span class="sd">    In addition to what has a :class:`SyftMessage`, they have a signature, a verify key</span>
 <span class="sd">    and a :meth:`is_valid` property that is here to check that the message was really</span>
@@ -348,7 +354,7 @@
         <span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="p">:</span> <span class="n">SignedMessage_PB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SignedMessageT</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="p">:</span> <span class="n">SignedMessage_PB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SignedMessageT</span><span class="p">:</span>  <span class="c1"># type: ignore[type-var]</span>
         <span class="c1"># TODO: horrible temp hack, need to rethink address on SignedMessage</span>
         <span class="n">sub_message</span> <span class="o">=</span> <span class="n">validate_type</span><span class="p">(</span>
             <span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">message</span><span class="p">,</span> <span class="n">from_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">SyftMessage</span>
@@ -389,37 +395,40 @@
 
 <div class="viewcode-block" id="SignedMessage.get_protobuf_schema"><a class="viewcode-back" href="../../../../api_reference/syft.core.common.message.html#syft.core.common.message.SignedMessage.get_protobuf_schema">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_protobuf_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">GeneratedProtocolMessageType</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">SignedMessage_PB</span></div></div>
+        <span class="k">return</span> <span class="n">SignedMessage_PB</span></div>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">signature</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify_key</span><span class="p">))</span></div>
 
 
 <span class="k">class</span> <span class="nc">SignedImmediateSyftMessageWithReply</span><span class="p">(</span><span class="n">SignedMessage</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
 
 
 <span class="k">class</span> <span class="nc">SignedImmediateSyftMessageWithoutReply</span><span class="p">(</span><span class="n">SignedMessage</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
 
     <span class="c1"># do stuff</span>
 
 
 <span class="k">class</span> <span class="nc">SignedEventualSyftMessageWithoutReply</span><span class="p">(</span><span class="n">SignedMessage</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
 
 
 <span class="k">class</span> <span class="nc">ImmediateSyftMessage</span><span class="p">(</span><span class="n">SyftMessage</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
 
 
 <span class="k">class</span> <span class="nc">EventualSyftMessage</span><span class="p">(</span><span class="n">SyftMessage</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
 
 
 <span class="k">class</span> <span class="nc">SyftMessageWithReply</span><span class="p">(</span><span class="n">SyftMessage</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
 
 
 <span class="k">class</span> <span class="nc">SyftMessageWithoutReply</span><span class="p">(</span><span class="n">SyftMessage</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
 
 
 <span class="k">class</span> <span class="nc">ImmediateSyftMessageWithoutReply</span><span class="p">(</span><span class="n">ImmediateSyftMessage</span><span class="p">,</span> <span class="n">SyftMessageWithoutReply</span><span class="p">):</span>

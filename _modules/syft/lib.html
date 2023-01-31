@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -188,20 +194,20 @@
 <span class="kn">from</span> <span class="nn">cachetools</span> <span class="kn">import</span> <span class="n">cached</span>
 <span class="kn">from</span> <span class="nn">cachetools.keys</span> <span class="kn">import</span> <span class="n">hashkey</span>
 <span class="kn">from</span> <span class="nn">packaging</span> <span class="kn">import</span> <span class="n">version</span>
-<span class="kn">import</span> <span class="nn">wrapt</span>
 
-<span class="c1"># syft relative</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">..ast.globals</span> <span class="kn">import</span> <span class="n">Globals</span>
 <span class="kn">from</span> <span class="nn">..core.node.abstract.node</span> <span class="kn">import</span> <span class="n">AbstractNodeClient</span>
-<span class="kn">from</span> <span class="nn">..lib.plan</span> <span class="kn">import</span> <span class="n">create_plan_ast</span>
-<span class="kn">from</span> <span class="nn">..lib.python</span> <span class="kn">import</span> <span class="n">create_python_ast</span>
-<span class="kn">from</span> <span class="nn">..lib.remote_dataloader</span> <span class="kn">import</span> <span class="n">create_remote_dataloader_ast</span>
-<span class="kn">from</span> <span class="nn">..lib.torch</span> <span class="kn">import</span> <span class="n">create_torch_ast</span>
-<span class="kn">from</span> <span class="nn">..lib.torchvision</span> <span class="kn">import</span> <span class="n">create_torchvision_ast</span>
+<span class="kn">from</span> <span class="nn">..core.node.common</span> <span class="kn">import</span> <span class="n">create_client_ast</span>
+<span class="kn">from</span> <span class="nn">..core.smpc</span> <span class="kn">import</span> <span class="n">create_smpc_ast</span>
+<span class="kn">from</span> <span class="nn">..core.tensor</span> <span class="kn">import</span> <span class="n">create_tensor_ast</span>
 <span class="kn">from</span> <span class="nn">..logger</span> <span class="kn">import</span> <span class="n">critical</span>
 <span class="kn">from</span> <span class="nn">..logger</span> <span class="kn">import</span> <span class="n">traceback_and_raise</span>
 <span class="kn">from</span> <span class="nn">..logger</span> <span class="kn">import</span> <span class="n">warning</span>
 <span class="kn">from</span> <span class="nn">.misc</span> <span class="kn">import</span> <span class="n">create_union_ast</span>
+<span class="kn">from</span> <span class="nn">.numpy</span> <span class="kn">import</span> <span class="n">create_ast</span>
+<span class="kn">from</span> <span class="nn">.python</span> <span class="kn">import</span> <span class="n">create_python_ast</span>
+<span class="kn">from</span> <span class="nn">.torch</span> <span class="kn">import</span> <span class="n">create_torch_ast</span>
 
 
 <div class="viewcode-block" id="VendorLibraryImportException"><a class="viewcode-back" href="../../api_reference/syft.lib.html#syft.lib.VendorLibraryImportException">[docs]</a><span class="k">class</span> <span class="nc">VendorLibraryImportException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
@@ -209,7 +215,7 @@
 
 
 <div class="viewcode-block" id="vendor_requirements_available"><a class="viewcode-back" href="../../api_reference/syft.lib.html#syft.lib.vendor_requirements_available">[docs]</a><span class="k">def</span> <span class="nf">vendor_requirements_available</span><span class="p">(</span><span class="n">vendor_requirements</span><span class="p">:</span> <span class="n">TypeDict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TypeAny</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Check whether torch or python version is supported</span>
 
 <span class="sd">    Args:</span>
@@ -283,17 +289,25 @@
 
 <span class="k">def</span> <span class="nf">_regenerate_unions</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">lib_ast</span><span class="p">:</span> <span class="n">Globals</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n">TypeAny</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">union_misc_ast</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
-        <span class="nb">getattr</span><span class="p">(</span><span class="n">create_union_ast</span><span class="p">(</span><span class="n">lib_ast</span><span class="o">=</span><span class="n">lib_ast</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">),</span> <span class="s2">&quot;syft&quot;</span><span class="p">),</span> <span class="s2">&quot;lib&quot;</span>
+        <span class="nb">getattr</span><span class="p">(</span><span class="n">create_union_ast</span><span class="p">(</span><span class="n">lib_ast</span><span class="o">=</span><span class="n">lib_ast</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">),</span> <span class="s2">&quot;syft&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="s2">&quot;lib&quot;</span><span class="p">,</span>
+        <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="k">if</span> <span class="n">client</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">union_misc_ast</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">elif</span> <span class="n">client</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">client</span><span class="o">.</span><span class="n">syft</span><span class="o">.</span><span class="n">lib</span><span class="o">.</span><span class="n">add_attr</span><span class="p">(</span><span class="n">attr_name</span><span class="o">=</span><span class="s2">&quot;misc&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="n">union_misc_ast</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;misc&quot;</span><span class="p">])</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">lib_ast</span><span class="o">.</span><span class="n">syft</span><span class="o">.</span><span class="n">lib</span><span class="o">.</span><span class="n">add_attr</span><span class="p">(</span><span class="n">attr_name</span><span class="o">=</span><span class="s2">&quot;misc&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="n">union_misc_ast</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;misc&quot;</span><span class="p">])</span>
 
 
-<span class="nd">@cached</span><span class="p">({},</span> <span class="k">lambda</span> <span class="o">*</span><span class="p">,</span> <span class="n">lib</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="kc">None</span><span class="p">:</span> <span class="n">hashkey</span><span class="p">(</span><span class="n">lib</span><span class="p">))</span>
+<div class="viewcode-block" id="get_cache"><a class="viewcode-back" href="../../api_reference/syft.lib.html#syft.lib.get_cache">[docs]</a><span class="k">def</span> <span class="nf">get_cache</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">TypeDict</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">()</span></div>
+
+
+<span class="nd">@cached</span><span class="p">(</span><span class="n">get_cache</span><span class="p">(),</span> <span class="k">lambda</span> <span class="o">*</span><span class="p">,</span> <span class="n">lib</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="kc">None</span><span class="p">:</span> <span class="n">hashkey</span><span class="p">(</span><span class="n">lib</span><span class="p">))</span>
 <span class="k">def</span> <span class="nf">_load_lib</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">lib</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TypeDict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TypeAny</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Load and Update Node with given library module</span>
 
 <span class="sd">    Args:</span>
@@ -306,13 +320,18 @@
     <span class="n">_</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">lib</span><span class="p">)</span>
     <span class="n">vendor_ast</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;syft.lib.</span><span class="si">{</span><span class="n">lib</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="n">PACKAGE_SUPPORT</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">vendor_ast</span><span class="p">,</span> <span class="s2">&quot;PACKAGE_SUPPORT&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">PACKAGE_SUPPORT</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unable to load package: </span><span class="si">{</span><span class="n">lib</span><span class="si">}</span><span class="s2">. Missing PACKAGE_SUPPORT.&quot;</span><span class="p">)</span>
     <span class="n">PACKAGE_SUPPORT</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">_options</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">PACKAGE_SUPPORT</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">vendor_requirements_available</span><span class="p">(</span>
         <span class="n">vendor_requirements</span><span class="o">=</span><span class="n">PACKAGE_SUPPORT</span>
     <span class="p">):</span>
         <span class="n">_add_lib</span><span class="p">(</span><span class="n">vendor_ast</span><span class="o">=</span><span class="n">vendor_ast</span><span class="p">,</span> <span class="n">ast_or_client</span><span class="o">=</span><span class="n">lib_ast</span><span class="p">)</span>
         <span class="c1"># cache the constructor for future created clients</span>
-        <span class="n">lib_ast</span><span class="o">.</span><span class="n">loaded_lib_constructors</span><span class="p">[</span><span class="n">lib</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">vendor_ast</span><span class="p">,</span> <span class="s2">&quot;update_ast&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">update_ast_func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">vendor_ast</span><span class="p">,</span> <span class="s2">&quot;update_ast&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">update_ast_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unable to load package: </span><span class="si">{</span><span class="n">lib</span><span class="si">}</span><span class="s2">. Missing update_ast func&quot;</span><span class="p">)</span>
+        <span class="n">lib_ast</span><span class="o">.</span><span class="n">loaded_lib_constructors</span><span class="p">[</span><span class="n">lib</span><span class="p">]</span> <span class="o">=</span> <span class="n">update_ast_func</span>
         <span class="n">_regenerate_unions</span><span class="p">(</span><span class="n">lib_ast</span><span class="o">=</span><span class="n">lib_ast</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">client</span> <span class="ow">in</span> <span class="n">lib_ast</span><span class="o">.</span><span class="n">registered_clients</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -322,11 +341,11 @@
 
 <div class="viewcode-block" id="load"><a class="viewcode-back" href="../../api_reference/syft.lib.html#syft.lib.load">[docs]</a><span class="k">def</span> <span class="nf">load</span><span class="p">(</span>
     <span class="o">*</span><span class="n">libs</span><span class="p">:</span> <span class="n">TypeUnion</span><span class="p">[</span><span class="n">TypeList</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">TypeTuple</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">TypeSet</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">],</span>
-    <span class="n">options</span><span class="p">:</span> <span class="n">TypeDict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TypeAny</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
+    <span class="n">options</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TypeDict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TypeAny</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">ignore_warning</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Load and Update Node with given library module</span>
 
 <span class="sd">    Args:</span>
@@ -336,6 +355,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># For backward compatibility with calls like `syft.load(lib = &quot;opacus&quot;)`</span>
     <span class="c1"># Note: syft.load(lib = &quot;opacus&quot;) doesnot work as it iterates the string, syft.load(&#39;opacus&#39;) works</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="n">options</span> <span class="k">if</span> <span class="n">options</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ignore_warning</span><span class="p">:</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;sy.load() is deprecated and not needed anymore&quot;</span>
@@ -345,7 +365,7 @@
     <span class="k">if</span> <span class="s2">&quot;lib&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
         <span class="n">libs</span> <span class="o">+=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;lib&quot;</span><span class="p">])</span>
 
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">libs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Iterable</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">libs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">libs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Iterable</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">libs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">libs</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">libs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="k">for</span> <span class="n">lib</span> <span class="ow">in</span> <span class="n">libs</span><span class="p">:</span>
@@ -353,11 +373,11 @@
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">_load_lib</span><span class="p">(</span><span class="n">lib</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">lib</span><span class="p">),</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span>
                 <span class="k">except</span> <span class="n">VendorLibraryImportException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                    <span class="n">critical</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                    <span class="n">warning</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                    <span class="n">critical</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unable to load package support for: </span><span class="si">{</span><span class="n">lib</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unable to load package support for: </span><span class="si">{</span><span class="n">lib</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">critical</span><span class="p">(</span>
+                <span class="n">warning</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;Unable to load package support for: </span><span class="si">{</span><span class="n">lib</span><span class="si">}</span><span class="s2">. Pass lib name as string object.&quot;</span>
                 <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -366,8 +386,8 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="load_lib"><a class="viewcode-back" href="../../api_reference/syft.lib.html#syft.lib.load_lib">[docs]</a><span class="k">def</span> <span class="nf">load_lib</span><span class="p">(</span><span class="n">lib</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="n">TypeDict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TypeAny</span><span class="p">]</span> <span class="o">=</span> <span class="p">{})</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="load_lib"><a class="viewcode-back" href="../../api_reference/syft.lib.html#syft.lib.load_lib">[docs]</a><span class="k">def</span> <span class="nf">load_lib</span><span class="p">(</span><span class="n">lib</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TypeDict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TypeAny</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Load and Update Node with given library module</span>
 <span class="sd">    _load_lib() is deprecated please use load() in the future</span>
 
@@ -376,6 +396,7 @@
 <span class="sd">        options: external requirements for loading library successfully</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="n">options</span> <span class="k">if</span> <span class="n">options</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
     <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;sy._load_lib() is deprecated and not needed anymore&quot;</span>
     <span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="nb">print</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
@@ -384,7 +405,7 @@
 
 <span class="c1"># now we need to load the relevant frameworks onto the node</span>
 <div class="viewcode-block" id="create_lib_ast"><a class="viewcode-back" href="../../api_reference/syft.lib.html#syft.lib.create_lib_ast">[docs]</a><span class="k">def</span> <span class="nf">create_lib_ast</span><span class="p">(</span><span class="n">client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Globals</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create AST and load the relevant frameworks onto the node</span>
 
 <span class="sd">    Args:</span>
@@ -396,24 +417,27 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">python_ast</span> <span class="o">=</span> <span class="n">create_python_ast</span><span class="p">(</span><span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
     <span class="n">torch_ast</span> <span class="o">=</span> <span class="n">create_torch_ast</span><span class="p">(</span><span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
-    <span class="n">torchvision_ast</span> <span class="o">=</span> <span class="n">create_torchvision_ast</span><span class="p">(</span><span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
-    <span class="c1"># numpy_ast = create_numpy_ast()</span>
-    <span class="n">plan_ast</span> <span class="o">=</span> <span class="n">create_plan_ast</span><span class="p">(</span><span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
-    <span class="n">remote_dataloader_ast</span> <span class="o">=</span> <span class="n">create_remote_dataloader_ast</span><span class="p">(</span><span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
+    <span class="n">numpy_ast</span> <span class="o">=</span> <span class="n">create_ast</span><span class="p">(</span><span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
+    <span class="n">client_ast</span> <span class="o">=</span> <span class="n">create_client_ast</span><span class="p">(</span><span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
+    <span class="n">tensor_ast</span> <span class="o">=</span> <span class="n">create_tensor_ast</span><span class="p">(</span><span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
+    <span class="n">smpc_ast</span> <span class="o">=</span> <span class="n">create_smpc_ast</span><span class="p">(</span><span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
 
     <span class="n">lib_ast</span> <span class="o">=</span> <span class="n">Globals</span><span class="p">(</span><span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
     <span class="n">lib_ast</span><span class="o">.</span><span class="n">add_attr</span><span class="p">(</span><span class="n">attr_name</span><span class="o">=</span><span class="s2">&quot;syft&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="n">python_ast</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;syft&quot;</span><span class="p">])</span>
     <span class="n">lib_ast</span><span class="o">.</span><span class="n">add_attr</span><span class="p">(</span><span class="n">attr_name</span><span class="o">=</span><span class="s2">&quot;torch&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="n">torch_ast</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;torch&quot;</span><span class="p">])</span>
-    <span class="n">lib_ast</span><span class="o">.</span><span class="n">add_attr</span><span class="p">(</span><span class="n">attr_name</span><span class="o">=</span><span class="s2">&quot;torchvision&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="n">torchvision_ast</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;torchvision&quot;</span><span class="p">])</span>
-    <span class="n">lib_ast</span><span class="o">.</span><span class="n">syft</span><span class="o">.</span><span class="n">add_attr</span><span class="p">(</span><span class="s2">&quot;core&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="n">plan_ast</span><span class="o">.</span><span class="n">syft</span><span class="o">.</span><span class="n">core</span><span class="p">)</span>
-    <span class="n">lib_ast</span><span class="o">.</span><span class="n">syft</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">add_attr</span><span class="p">(</span>
-        <span class="s2">&quot;remote_dataloader&quot;</span><span class="p">,</span> <span class="n">remote_dataloader_ast</span><span class="o">.</span><span class="n">syft</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">remote_dataloader</span>
-    <span class="p">)</span>
+    <span class="n">lib_ast</span><span class="o">.</span><span class="n">add_attr</span><span class="p">(</span><span class="n">attr_name</span><span class="o">=</span><span class="s2">&quot;numpy&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="n">numpy_ast</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;numpy&quot;</span><span class="p">])</span>
+    <span class="n">lib_ast</span><span class="o">.</span><span class="n">syft</span><span class="o">.</span><span class="n">add_attr</span><span class="p">(</span><span class="s2">&quot;core&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="n">tensor_ast</span><span class="o">.</span><span class="n">syft</span><span class="o">.</span><span class="n">core</span><span class="p">)</span>
+    <span class="n">lib_ast</span><span class="o">.</span><span class="n">syft</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">add_attr</span><span class="p">(</span><span class="s2">&quot;node&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="n">client_ast</span><span class="o">.</span><span class="n">syft</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">node</span><span class="p">)</span>
+    <span class="n">lib_ast</span><span class="o">.</span><span class="n">syft</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">add_attr</span><span class="p">(</span><span class="s2">&quot;common&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="n">client_ast</span><span class="o">.</span><span class="n">syft</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">common</span><span class="p">)</span>
+    <span class="n">lib_ast</span><span class="o">.</span><span class="n">syft</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">add_attr</span><span class="p">(</span><span class="s2">&quot;smpc&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="n">smpc_ast</span><span class="o">.</span><span class="n">syft</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">smpc</span><span class="p">)</span>
 
     <span class="c1"># let the misc creation be always the last, as it needs the full ast solved</span>
     <span class="c1"># to properly generated unions</span>
-    <span class="n">union_misc_ast</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">create_union_ast</span><span class="p">(</span><span class="n">lib_ast</span><span class="p">,</span> <span class="n">client</span><span class="p">),</span> <span class="s2">&quot;syft&quot;</span><span class="p">),</span> <span class="s2">&quot;lib&quot;</span><span class="p">)</span>
-    <span class="n">lib_ast</span><span class="o">.</span><span class="n">syft</span><span class="o">.</span><span class="n">lib</span><span class="o">.</span><span class="n">add_attr</span><span class="p">(</span><span class="n">attr_name</span><span class="o">=</span><span class="s2">&quot;misc&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="n">union_misc_ast</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;misc&quot;</span><span class="p">])</span>
+    <span class="n">union_misc_ast</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
+        <span class="nb">getattr</span><span class="p">(</span><span class="n">create_union_ast</span><span class="p">(</span><span class="n">lib_ast</span><span class="p">,</span> <span class="n">client</span><span class="p">),</span> <span class="s2">&quot;syft&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">&quot;lib&quot;</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">union_misc_ast</span><span class="p">:</span>
+        <span class="n">lib_ast</span><span class="o">.</span><span class="n">syft</span><span class="o">.</span><span class="n">lib</span><span class="o">.</span><span class="n">add_attr</span><span class="p">(</span><span class="n">attr_name</span><span class="o">=</span><span class="s2">&quot;misc&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="n">union_misc_ast</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;misc&quot;</span><span class="p">])</span>
 
     <span class="k">return</span> <span class="n">lib_ast</span></div>
 
@@ -421,30 +445,15 @@
 <span class="n">lib_ast</span> <span class="o">=</span> <span class="n">create_lib_ast</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="post_import_hook_third_party"><a class="viewcode-back" href="../../api_reference/syft.lib.html#syft.lib.post_import_hook_third_party">[docs]</a><span class="nd">@wrapt</span><span class="o">.</span><span class="n">when_imported</span><span class="p">(</span><span class="s2">&quot;gym&quot;</span><span class="p">)</span>
-<span class="nd">@wrapt</span><span class="o">.</span><span class="n">when_imported</span><span class="p">(</span><span class="s2">&quot;opacus&quot;</span><span class="p">)</span>
-<span class="nd">@wrapt</span><span class="o">.</span><span class="n">when_imported</span><span class="p">(</span><span class="s2">&quot;numpy&quot;</span><span class="p">)</span>
-<span class="nd">@wrapt</span><span class="o">.</span><span class="n">when_imported</span><span class="p">(</span><span class="s2">&quot;sklearn&quot;</span><span class="p">)</span>
-<span class="nd">@wrapt</span><span class="o">.</span><span class="n">when_imported</span><span class="p">(</span><span class="s2">&quot;pandas&quot;</span><span class="p">)</span>
-<span class="nd">@wrapt</span><span class="o">.</span><span class="n">when_imported</span><span class="p">(</span><span class="s2">&quot;PIL&quot;</span><span class="p">)</span>
-<span class="nd">@wrapt</span><span class="o">.</span><span class="n">when_imported</span><span class="p">(</span><span class="s2">&quot;petlib&quot;</span><span class="p">)</span>
-<span class="nd">@wrapt</span><span class="o">.</span><span class="n">when_imported</span><span class="p">(</span><span class="s2">&quot;openmined_psi&quot;</span><span class="p">)</span>
-<span class="nd">@wrapt</span><span class="o">.</span><span class="n">when_imported</span><span class="p">(</span><span class="s2">&quot;pydp&quot;</span><span class="p">)</span>
-<span class="nd">@wrapt</span><span class="o">.</span><span class="n">when_imported</span><span class="p">(</span><span class="s2">&quot;statsmodels&quot;</span><span class="p">)</span>
-<span class="nd">@wrapt</span><span class="o">.</span><span class="n">when_imported</span><span class="p">(</span><span class="s2">&quot;sympc&quot;</span><span class="p">)</span>
-<span class="nd">@wrapt</span><span class="o">.</span><span class="n">when_imported</span><span class="p">(</span><span class="s2">&quot;tenseal&quot;</span><span class="p">)</span>
-<span class="nd">@wrapt</span><span class="o">.</span><span class="n">when_imported</span><span class="p">(</span><span class="s2">&quot;xgboost&quot;</span><span class="p">)</span>
-<span class="nd">@wrapt</span><span class="o">.</span><span class="n">when_imported</span><span class="p">(</span><span class="s2">&quot;zksk&quot;</span><span class="p">)</span>
-<span class="nd">@wrapt</span><span class="o">.</span><span class="n">when_imported</span><span class="p">(</span><span class="s2">&quot;pytorch_lightning&quot;</span><span class="p">)</span>
-<span class="nd">@wrapt</span><span class="o">.</span><span class="n">when_imported</span><span class="p">(</span><span class="s2">&quot;transformers&quot;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">post_import_hook_third_party</span><span class="p">(</span><span class="n">module</span><span class="p">:</span> <span class="n">TypeAny</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Note: This needs to be after `lib_ast` because code above uses lib-ast</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># msg = f&quot;inside post_import_hook_third_party module_name {module.__name__}&quot;</span>
-    <span class="c1"># warning(msg, print=True)</span>
-    <span class="c1"># warnings.warn(msg, DeprecationWarning)</span>
-    <span class="n">load</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">ignore_warning</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+<span class="c1"># @wrapt.when_imported(&quot;numpy&quot;)</span>
+<span class="c1"># def post_import_hook_third_party(module: TypeAny) -&gt; None:</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     Note: This needs to be after `lib_ast` because code above uses lib-ast</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     # msg = f&quot;inside post_import_hook_third_party module_name {module.__name__}&quot;</span>
+<span class="c1">#     # warning(msg, print=True)</span>
+<span class="c1">#     # warnings.warn(msg, DeprecationWarning)</span>
+<span class="c1">#     load(module.__name__, ignore_warning=True)</span>
 </pre></div>
 
               </div>

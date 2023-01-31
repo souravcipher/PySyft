@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -178,16 +184,16 @@
 <span class="kn">from</span> <span class="nn">google.protobuf.reflection</span> <span class="kn">import</span> <span class="n">GeneratedProtocolMessageType</span>
 <span class="kn">from</span> <span class="nn">typing_extensions</span> <span class="kn">import</span> <span class="n">final</span>
 
-<span class="c1"># syft relative</span>
-<span class="kn">from</span> <span class="nn">.....</span> <span class="kn">import</span> <span class="n">serialize</span>
+<span class="c1"># relative</span>
+<span class="kn">from</span> <span class="nn">.....lib.util</span> <span class="kn">import</span> <span class="n">full_name_with_qualname</span>
 <span class="kn">from</span> <span class="nn">.....proto.core.node.common.action.exception_action_pb2</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">ExceptionMessage</span> <span class="k">as</span> <span class="n">ExceptionMessage_PB</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">.....util</span> <span class="kn">import</span> <span class="n">get_fully_qualified_name</span>
 <span class="kn">from</span> <span class="nn">.....util</span> <span class="kn">import</span> <span class="n">validate_type</span>
 <span class="kn">from</span> <span class="nn">....common.message</span> <span class="kn">import</span> <span class="n">ImmediateSyftMessageWithoutReply</span>
-<span class="kn">from</span> <span class="nn">....common.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span>
-<span class="kn">from</span> <span class="nn">....common.serde.serializable</span> <span class="kn">import</span> <span class="n">bind_protobuf</span>
+<span class="kn">from</span> <span class="nn">....common.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span> <span class="k">as</span> <span class="n">deserialize</span>
+<span class="kn">from</span> <span class="nn">....common.serde.serializable</span> <span class="kn">import</span> <span class="n">serializable</span>
+<span class="kn">from</span> <span class="nn">....common.serde.serialize</span> <span class="kn">import</span> <span class="n">_serialize</span> <span class="k">as</span> <span class="n">serialize</span>
 <span class="kn">from</span> <span class="nn">....common.uid</span> <span class="kn">import</span> <span class="n">UID</span>
 <span class="kn">from</span> <span class="nn">....io.address</span> <span class="kn">import</span> <span class="n">Address</span>
 
@@ -196,8 +202,8 @@
     <span class="k">pass</span></div>
 
 
-<span class="nd">@bind_protobuf</span>
 <span class="nd">@final</span>
+<span class="nd">@serializable</span><span class="p">()</span>
 <span class="k">class</span> <span class="nc">ExceptionMessage</span><span class="p">(</span><span class="n">ImmediateSyftMessageWithoutReply</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -213,7 +219,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">exception_msg</span> <span class="o">=</span> <span class="n">exception_msg</span>
 
     <span class="k">def</span> <span class="nf">_object2proto</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExceptionMessage_PB</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Returns a protobuf serialization of self.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a protobuf serialization of self.</span>
 
 <span class="sd">        As a requirement of all objects which inherit from Serializable,</span>
 <span class="sd">        this method transforms the current object into the corresponding</span>
@@ -229,7 +235,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># convert exception into fully qualified class path</span>
-        <span class="n">fqn</span> <span class="o">=</span> <span class="n">get_fully_qualified_name</span><span class="p">(</span><span class="n">obj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">exception_type</span><span class="p">)</span>
+        <span class="n">fqn</span> <span class="o">=</span> <span class="n">full_name_with_qualname</span><span class="p">(</span><span class="n">klass</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">exception_type</span><span class="p">)</span>
         <span class="n">module_parts</span> <span class="o">=</span> <span class="n">fqn</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
         <span class="n">_</span> <span class="o">=</span> <span class="n">module_parts</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>  <span class="c1"># remove incorrect .type ending</span>
         <span class="n">module_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exception_type</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
@@ -245,7 +251,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="p">:</span> <span class="n">ExceptionMessage_PB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ExceptionMessage&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Creates a ExceptionMessage from a protobuf</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a ExceptionMessage from a protobuf</span>
 
 <span class="sd">        As a requirement of all objects which inherit from Serializable,</span>
 <span class="sd">        this method transforms a protobuf object into an instance of this class.</span>
@@ -264,10 +270,10 @@
         <span class="n">exception_type</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">module_parts</span><span class="p">)],</span> <span class="n">klass</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">ExceptionMessage</span><span class="p">(</span>
-            <span class="n">msg_id</span><span class="o">=</span><span class="n">validate_type</span><span class="p">(</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">msg_id</span><span class="p">),</span> <span class="n">UID</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-            <span class="n">address</span><span class="o">=</span><span class="n">validate_type</span><span class="p">(</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">address</span><span class="p">),</span> <span class="n">Address</span><span class="p">),</span>
+            <span class="n">msg_id</span><span class="o">=</span><span class="n">validate_type</span><span class="p">(</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">msg_id</span><span class="p">),</span> <span class="n">UID</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+            <span class="n">address</span><span class="o">=</span><span class="n">validate_type</span><span class="p">(</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">address</span><span class="p">),</span> <span class="n">Address</span><span class="p">),</span>
             <span class="n">msg_id_causing_exception</span><span class="o">=</span><span class="n">validate_type</span><span class="p">(</span>
-                <span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">msg_id_causing_exception</span><span class="p">),</span> <span class="n">UID</span>
+                <span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">msg_id_causing_exception</span><span class="p">),</span> <span class="n">UID</span>
             <span class="p">),</span>
             <span class="n">exception_type</span><span class="o">=</span><span class="n">exception_type</span><span class="p">,</span>
             <span class="n">exception_msg</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">exception_msg</span><span class="p">,</span>
@@ -275,7 +281,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_protobuf_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">GeneratedProtocolMessageType</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
 
 <span class="sd">        As a part of serialization and deserialization, we need the ability to</span>
 <span class="sd">        lookup the protobuf object type directly from the object type. This</span>

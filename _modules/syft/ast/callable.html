@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -178,10 +184,9 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span> <span class="k">as</span> <span class="n">CallableT</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
 
-<span class="c1"># syft relative</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">ast</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">lib</span>
 <span class="kn">from</span> <span class="nn">..core.node.abstract.node</span> <span class="kn">import</span> <span class="n">AbstractNodeClient</span>
@@ -194,7 +199,7 @@
 
 
 <div class="viewcode-block" id="Callable"><a class="viewcode-back" href="../../../api_reference/syft.ast.callable.html#syft.ast.callable.Callable">[docs]</a><span class="k">class</span> <span class="nc">Callable</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">attribute</span><span class="o">.</span><span class="n">Attribute</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Represent a method (can be static), global function, or constructor which can be directly executed.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represent a method (can be static), global function, or constructor which can be directly executed.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="Callable.__init__"><a class="viewcode-back" href="../../../api_reference/syft.ast.callable.html#syft.ast.callable.Callable.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -205,7 +210,7 @@
         <span class="n">client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">AbstractNodeClient</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">is_static</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Base constructor for Callable.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Base constructor for Callable.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            path_and_name: The path for the current node, e.g. `syft.lib.python.List`.</span>
@@ -227,10 +232,10 @@
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="s2">&quot;Callable&quot;</span><span class="p">,</span> <span class="n">CallableT</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;The `__call__` method on a `Callable` has two possible roles, e.g.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The `__call__` method on a `Callable` has two possible roles, e.g.</span>
 
 <span class="sd">        1. If the client is set, execute the function for the client and return the appropriate pointer</span>
 <span class="sd">        given the `return_type_name`.</span>
@@ -261,7 +266,10 @@
 
             <span class="c1"># then we convert anything which isn&#39;t a pointer into a pointer</span>
             <span class="n">pointer_args</span><span class="p">,</span> <span class="n">pointer_kwargs</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">klass</span><span class="o">.</span><span class="n">pointerize_args_and_kwargs</span><span class="p">(</span>
-                <span class="n">args</span><span class="o">=</span><span class="n">downcast_args</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="n">downcast_kwargs</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">client</span>
+                <span class="n">args</span><span class="o">=</span><span class="n">downcast_args</span><span class="p">,</span>
+                <span class="n">kwargs</span><span class="o">=</span><span class="n">downcast_kwargs</span><span class="p">,</span>
+                <span class="n">client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="p">,</span>
+                <span class="n">gc_enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="p">)</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_and_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -283,6 +291,8 @@
                     <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
                     <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span>
                 <span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">processing_pointers</span><span class="p">[</span><span class="n">ptr</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># type: ignore</span>
                 <span class="k">return</span> <span class="n">ptr</span>
 
         <span class="k">if</span> <span class="s2">&quot;path&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s2">&quot;index&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
@@ -307,7 +317,7 @@
         <span class="n">framework_reference</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ModuleType</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">is_static</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;The add_path adds new nodes in AST based on type of current node and type of object to be added.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The add_path adds new nodes in AST based on type of current node and type of object to be added.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            path: The node path added in AST, e.g. `syft.lib.python.List` or [&quot;syft&quot;, &quot;lib&quot;, &quot;python&quot;, &quot;List].</span>

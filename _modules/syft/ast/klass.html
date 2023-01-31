@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -175,6 +181,7 @@
 <span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
 <span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">EnumMeta</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">ModuleType</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span> <span class="k">as</span> <span class="n">CallableT</span>
@@ -186,33 +193,39 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 
-<span class="c1"># syft relative</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">ast</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">lib</span>
-<span class="kn">from</span> <span class="nn">..ast.callable</span> <span class="kn">import</span> <span class="n">Callable</span>
 <span class="kn">from</span> <span class="nn">..core.common.group</span> <span class="kn">import</span> <span class="n">VERIFYALL</span>
 <span class="kn">from</span> <span class="nn">..core.common.uid</span> <span class="kn">import</span> <span class="n">UID</span>
+<span class="kn">from</span> <span class="nn">..core.node.common.action.action_sequence</span> <span class="kn">import</span> <span class="n">ActionSequence</span>
 <span class="kn">from</span> <span class="nn">..core.node.common.action.get_or_set_property_action</span> <span class="kn">import</span> <span class="n">GetOrSetPropertyAction</span>
 <span class="kn">from</span> <span class="nn">..core.node.common.action.get_or_set_property_action</span> <span class="kn">import</span> <span class="n">PropertyActions</span>
 <span class="kn">from</span> <span class="nn">..core.node.common.action.run_class_method_action</span> <span class="kn">import</span> <span class="n">RunClassMethodAction</span>
+<span class="kn">from</span> <span class="nn">..core.node.common.action.run_class_method_smpc_action</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">RunClassMethodSMPCAction</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">..core.node.common.action.save_object_action</span> <span class="kn">import</span> <span class="n">SaveObjectAction</span>
-<span class="kn">from</span> <span class="nn">..core.node.common.service.resolve_pointer_type_service</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span> <span class="nn">..core.node.common.node_service.resolve_pointer_type.resolve_pointer_type_messages</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">ResolvePointerTypeMessage</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">..core.node.common.util</span> <span class="kn">import</span> <span class="n">check_send_to_blob_storage</span>
+<span class="kn">from</span> <span class="nn">..core.node.common.util</span> <span class="kn">import</span> <span class="n">upload_to_s3_using_presigned</span>
 <span class="kn">from</span> <span class="nn">..core.pointer.pointer</span> <span class="kn">import</span> <span class="n">Pointer</span>
 <span class="kn">from</span> <span class="nn">..core.store.storeable_object</span> <span class="kn">import</span> <span class="n">StorableObject</span>
-<span class="kn">from</span> <span class="nn">..logger</span> <span class="kn">import</span> <span class="n">critical</span>
 <span class="kn">from</span> <span class="nn">..logger</span> <span class="kn">import</span> <span class="n">traceback_and_raise</span>
 <span class="kn">from</span> <span class="nn">..logger</span> <span class="kn">import</span> <span class="n">warning</span>
 <span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">aggressive_set_attr</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">get_loaded_syft</span>
 <span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">inherit_tags</span>
+<span class="kn">from</span> <span class="nn">.callable</span> <span class="kn">import</span> <span class="n">Callable</span>
 
 
 <span class="k">def</span> <span class="nf">_resolve_pointer_type</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">Pointer</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Pointer</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Resolve pointer of the object.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Resolve pointer of the object.</span>
 
 <span class="sd">    Creates a request on a pointer to validate and regenerate the current pointer type. This method</span>
-<span class="sd">    is useful when deadling with AnyPointer or Union&lt;types&gt;Pointers, to retrieve the real pointer.</span>
+<span class="sd">    is useful when dealing with AnyPointer or Union&lt;types&gt;Pointers, to retrieve the real pointer.</span>
 
 <span class="sd">    The existing pointer will be deleted and a new one will be generated. The remote data won&#39;t</span>
 <span class="sd">    be touched.</span>
@@ -226,7 +239,7 @@
     <span class="c1"># id_at_location has to be preserved</span>
     <span class="n">id_at_location</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;id_at_location&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">id_at_location</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">traceback_and_raise</span><span class="p">(</span>
             <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t resolve a pointer that has no underlying object.&quot;</span><span class="p">)</span>
         <span class="p">)</span>
@@ -250,8 +263,8 @@
     <span class="k">return</span> <span class="n">new_pointer</span>
 
 
-<div class="viewcode-block" id="get_run_class_method"><a class="viewcode-back" href="../../../api_reference/syft.ast.klass.html#syft.ast.klass.get_run_class_method">[docs]</a><span class="k">def</span> <span class="nf">get_run_class_method</span><span class="p">(</span><span class="n">attr_path_and_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CallableT</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Create a function for class method in `attr_path_and_name` for remote execution.</span>
+<div class="viewcode-block" id="get_run_class_method"><a class="viewcode-back" href="../../../api_reference/syft.ast.klass.html#syft.ast.klass.get_run_class_method">[docs]</a><span class="k">def</span> <span class="nf">get_run_class_method</span><span class="p">(</span><span class="n">attr_path_and_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">SMPC</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CallableT</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a function for class method in `attr_path_and_name` for remote execution.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        attr_path_and_name: The path of the class method.</span>
@@ -273,13 +286,11 @@
 <span class="sd">        multiple times it returns genuinely different methods each time with a different</span>
 <span class="sd">        internal `attr_path_and_name` variable.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># relative</span>
+    <span class="kn">from</span> <span class="nn">..core.node.common.action</span> <span class="kn">import</span> <span class="n">smpc_action_functions</span>
 
-    <span class="k">def</span> <span class="nf">run_class_method</span><span class="p">(</span>
-        <span class="n">__self</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
-        <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
-        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Run remote class method and get pointer to returned object.</span>
+    <span class="k">def</span> <span class="nf">run_class_smpc_method</span><span class="p">(</span><span class="n">__self</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run remote class method on a SharePointer and get pointer to returned object.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            *args: Args list of class method.</span>
@@ -288,6 +299,73 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            Pointer to object returned by class method.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">seed_id_locations</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;seed_id_locations&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">seed_id_locations</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;There should be a `seed_id_locations` kwargs when doing an operation for MPCTensor&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">op</span> <span class="o">=</span> <span class="n">attr_path_and_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">id_at_location</span> <span class="o">=</span> <span class="n">smpc_action_functions</span><span class="o">.</span><span class="n">get_id_at_location_from_op</span><span class="p">(</span>
+            <span class="n">seed_id_locations</span><span class="p">,</span> <span class="n">op</span>
+        <span class="p">)</span>
+
+        <span class="c1"># we want to get the return type which matches the attr_path_and_name</span>
+        <span class="c1"># so we ask lib_ast for the return type name that matches out</span>
+        <span class="c1"># attr_path_and_name and then use that to get the actual pointer klass</span>
+        <span class="c1"># then set the result to that pointer klass</span>
+        <span class="n">return_type_name</span> <span class="o">=</span> <span class="n">__self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">lib_ast</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+            <span class="n">attr_path_and_name</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">return_type_name</span>
+        <span class="n">resolved_pointer_type</span> <span class="o">=</span> <span class="n">__self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">lib_ast</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">return_type_name</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">resolved_pointer_type</span><span class="o">.</span><span class="n">pointer_type</span><span class="p">(</span><span class="n">client</span><span class="o">=</span><span class="n">__self</span><span class="o">.</span><span class="n">client</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">id_at_location</span> <span class="o">=</span> <span class="n">id_at_location</span>
+
+        <span class="c1"># first downcast anything primitive which is not already PyPrimitive</span>
+        <span class="p">(</span><span class="n">downcast_args</span><span class="p">,</span> <span class="n">downcast_kwargs</span><span class="p">)</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">python</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">downcast_args_and_kwargs</span><span class="p">(</span>
+            <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+
+        <span class="c1"># then we convert anything which isnt a pointer into a pointer</span>
+        <span class="n">pointer_args</span><span class="p">,</span> <span class="n">pointer_kwargs</span> <span class="o">=</span> <span class="n">pointerize_args_and_kwargs</span><span class="p">(</span>
+            <span class="n">args</span><span class="o">=</span><span class="n">downcast_args</span><span class="p">,</span>
+            <span class="n">kwargs</span><span class="o">=</span><span class="n">downcast_kwargs</span><span class="p">,</span>
+            <span class="n">client</span><span class="o">=</span><span class="n">__self</span><span class="o">.</span><span class="n">client</span><span class="p">,</span>
+            <span class="n">gc_enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">RunClassMethodSMPCAction</span><span class="p">(</span>
+            <span class="n">path</span><span class="o">=</span><span class="n">attr_path_and_name</span><span class="p">,</span>
+            <span class="n">_self</span><span class="o">=</span><span class="n">__self</span><span class="p">,</span>
+            <span class="n">args</span><span class="o">=</span><span class="n">pointer_args</span><span class="p">,</span>
+            <span class="n">kwargs</span><span class="o">=</span><span class="n">pointer_kwargs</span><span class="p">,</span>
+            <span class="n">id_at_location</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">,</span>
+            <span class="n">seed_id_locations</span><span class="o">=</span><span class="n">seed_id_locations</span><span class="p">,</span>
+            <span class="n">address</span><span class="o">=</span><span class="n">__self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">address</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">__self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">send_immediate_msg_without_reply</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">cmd</span><span class="p">)</span>
+
+        <span class="n">inherit_tags</span><span class="p">(</span>
+            <span class="n">attr_path_and_name</span><span class="o">=</span><span class="n">attr_path_and_name</span><span class="p">,</span>
+            <span class="n">result</span><span class="o">=</span><span class="n">result</span><span class="p">,</span>
+            <span class="n">self_obj</span><span class="o">=</span><span class="n">__self</span><span class="p">,</span>
+            <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+            <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">run_class_method</span><span class="p">(</span><span class="n">__self</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run remote class method and get pointer to returned object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            *args: Args list of class method.</span>
+<span class="sd">            **kwargs: Keyword args of class method.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Pointer to object returned by class method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="c1"># we want to get the return type which matches the attr_path_and_name</span>
         <span class="c1"># so we ask lib_ast for the return type name that matches out</span>
         <span class="c1"># attr_path_and_name and then use that to get the actual pointer klass</span>
@@ -302,14 +380,16 @@
         <span class="n">result_id_at_location</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s2">&quot;id_at_location&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">result_id_at_location</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># first downcast anything primitive which is not already PyPrimitive</span>
-            <span class="p">(</span>
-                <span class="n">downcast_args</span><span class="p">,</span>
-                <span class="n">downcast_kwargs</span><span class="p">,</span>
-            <span class="p">)</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">python</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">downcast_args_and_kwargs</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="p">(</span><span class="n">downcast_args</span><span class="p">,</span> <span class="n">downcast_kwargs</span><span class="p">)</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">python</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">downcast_args_and_kwargs</span><span class="p">(</span>
+                <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span>
+            <span class="p">)</span>
 
             <span class="c1"># then we convert anything which isnt a pointer into a pointer</span>
             <span class="n">pointer_args</span><span class="p">,</span> <span class="n">pointer_kwargs</span> <span class="o">=</span> <span class="n">pointerize_args_and_kwargs</span><span class="p">(</span>
-                <span class="n">args</span><span class="o">=</span><span class="n">downcast_args</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="n">downcast_kwargs</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="n">__self</span><span class="o">.</span><span class="n">client</span>
+                <span class="n">args</span><span class="o">=</span><span class="n">downcast_args</span><span class="p">,</span>
+                <span class="n">kwargs</span><span class="o">=</span><span class="n">downcast_kwargs</span><span class="p">,</span>
+                <span class="n">client</span><span class="o">=</span><span class="n">__self</span><span class="o">.</span><span class="n">client</span><span class="p">,</span>
+                <span class="n">gc_enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="p">)</span>
 
             <span class="n">cmd</span> <span class="o">=</span> <span class="n">RunClassMethodAction</span><span class="p">(</span>
@@ -329,8 +409,15 @@
             <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
             <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">)</span>
-
+        <span class="n">__self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">processing_pointers</span><span class="p">[</span><span class="n">result_id_at_location</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="n">result</span>
+
+    <span class="n">method_name</span> <span class="o">=</span> <span class="n">attr_path_and_name</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">SMPC</span> <span class="ow">or</span> <span class="p">(</span>
+        <span class="s2">&quot;ShareTensor&quot;</span> <span class="ow">in</span> <span class="n">attr_path_and_name</span>
+        <span class="ow">and</span> <span class="n">method_name</span> <span class="ow">in</span> <span class="n">smpc_action_functions</span><span class="o">.</span><span class="n">ACTION_FUNCTIONS</span>
+    <span class="p">):</span>
+        <span class="k">return</span> <span class="n">run_class_smpc_method</span>
 
     <span class="k">return</span> <span class="n">run_class_method</span></div>
 
@@ -338,7 +425,7 @@
 <div class="viewcode-block" id="generate_class_property_function"><a class="viewcode-back" href="../../../api_reference/syft.ast.klass.html#syft.ast.klass.generate_class_property_function">[docs]</a><span class="k">def</span> <span class="nf">generate_class_property_function</span><span class="p">(</span>
     <span class="n">attr_path_and_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">PropertyActions</span><span class="p">,</span> <span class="n">map_to_dyn</span><span class="p">:</span> <span class="nb">bool</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CallableT</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Returns a function that handles action on property.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns a function that handles action on property.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        attr_path_and_name: The path of the property in AST.</span>
@@ -349,7 +436,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">class_property_function</span><span class="p">(</span><span class="n">__self</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Handles remote action on property and returns pointer.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handles remote action on property and returns pointer.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            *args: Argument list.</span>
@@ -371,10 +458,9 @@
         <span class="n">result_id_at_location</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s2">&quot;id_at_location&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">result_id_at_location</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># first downcast anything primitive which is not already PyPrimitive</span>
-            <span class="p">(</span>
-                <span class="n">downcast_args</span><span class="p">,</span>
-                <span class="n">downcast_kwargs</span><span class="p">,</span>
-            <span class="p">)</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">python</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">downcast_args_and_kwargs</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="p">(</span><span class="n">downcast_args</span><span class="p">,</span> <span class="n">downcast_kwargs</span><span class="p">)</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">python</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">downcast_args_and_kwargs</span><span class="p">(</span>
+                <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span>
+            <span class="p">)</span>
 
             <span class="c1"># then we convert anything which isnt a pointer into a pointer</span>
             <span class="n">pointer_args</span><span class="p">,</span> <span class="n">pointer_kwargs</span> <span class="o">=</span> <span class="n">pointerize_args_and_kwargs</span><span class="p">(</span>
@@ -407,7 +493,7 @@
 
 
 <span class="k">def</span> <span class="nf">_get_request_config</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;Get config for request.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get config for request.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        self: object.</span>
@@ -415,25 +501,21 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        Config for request.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="p">{</span>
-        <span class="s2">&quot;request_block&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s2">&quot;timeout_secs&quot;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>
-        <span class="s2">&quot;delete_obj&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="p">}</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;request_block&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;timeout_secs&quot;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span> <span class="s2">&quot;delete_obj&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
 
 
 <span class="k">def</span> <span class="nf">_set_request_config</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">request_config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Set config for request.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Set config for request.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        self: object.</span>
 <span class="sd">        request_config: new config.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;get_request_config&quot;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">request_config</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">get_request_config</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">request_config</span>
 
 
 <div class="viewcode-block" id="wrap_iterator"><a class="viewcode-back" href="../../../api_reference/syft.ast.klass.html#syft.ast.klass.wrap_iterator">[docs]</a><span class="k">def</span> <span class="nf">wrap_iterator</span><span class="p">(</span><span class="n">attrs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">CallableT</span><span class="p">,</span> <span class="nb">property</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Add syft Iterator to `attrs[&#39;__iter__&#39;]`.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add syft Iterator to `attrs[&#39;__iter__&#39;]`.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        attrs: Dict of `Attribute`s of node.</span>
@@ -443,7 +525,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">wrap_iter</span><span class="p">(</span><span class="n">iter_func</span><span class="p">:</span> <span class="n">CallableT</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CallableT</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create syft iterator for `iter_func`.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create syft iterator for `iter_func`.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            iter_func: Base Iterator.</span>
@@ -453,7 +535,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">:</span>
-            <span class="sd">&quot;&quot;&quot;Create Syft Iterator for `iter_func`.</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Create Syft Iterator for `iter_func`.</span>
 
 <span class="sd">            Args:</span>
 <span class="sd">                self: object to add iterator to.</span>
@@ -464,8 +546,8 @@
 <span class="sd">            Returns:</span>
 <span class="sd">                Iterable: syft Iterator.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="c1"># syft absolute</span>
-            <span class="kn">from</span> <span class="nn">syft.lib.python.iterator</span> <span class="kn">import</span> <span class="n">Iterator</span>
+            <span class="c1"># relative</span>
+            <span class="kn">from</span> <span class="nn">..lib.python.iterator</span> <span class="kn">import</span> <span class="n">Iterator</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
                 <span class="n">traceback_and_raise</span><span class="p">(</span>
@@ -501,7 +583,7 @@
 
 
 <div class="viewcode-block" id="wrap_len"><a class="viewcode-back" href="../../../api_reference/syft.ast.klass.html#syft.ast.klass.wrap_len">[docs]</a><span class="k">def</span> <span class="nf">wrap_len</span><span class="p">(</span><span class="n">attrs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">CallableT</span><span class="p">,</span> <span class="nb">property</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Add method to access pointer len to `attr[__len__]`.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add method to access pointer len to `attr[__len__]`.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        attrs: Dict of `Attribute`s of node.</span>
@@ -511,7 +593,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">wrap_len</span><span class="p">(</span><span class="n">len_func</span><span class="p">:</span> <span class="n">CallableT</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CallableT</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Add wrapper function for `len_func`.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add wrapper function for `len_func`.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            len_func: Base len function.</span>
@@ -521,7 +603,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-            <span class="sd">&quot;&quot;&quot;Access len of pointer obj.</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Access len of pointer obj.</span>
 
 <span class="sd">            Args:</span>
 <span class="sd">                self: object to add iterator to.</span>
@@ -534,6 +616,7 @@
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="n">data_len_ptr</span> <span class="o">=</span> <span class="n">len_func</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_request_config</span><span class="p">())</span>
                 <span class="n">data_len</span> <span class="o">=</span> <span class="n">data_len_ptr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">get_request_config</span><span class="p">())</span>
 
                 <span class="k">if</span> <span class="n">data_len</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -562,7 +645,7 @@
 
 
 <div class="viewcode-block" id="attach_tags"><a class="viewcode-back" href="../../../api_reference/syft.ast.klass.html#syft.ast.klass.attach_tags">[docs]</a><span class="k">def</span> <span class="nf">attach_tags</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">tags</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Add tags to the object.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add tags to the object.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        obj: Object to add tags to.</span>
@@ -578,7 +661,7 @@
 
 
 <div class="viewcode-block" id="attach_description"><a class="viewcode-back" href="../../../api_reference/syft.ast.klass.html#syft.ast.klass.attach_description">[docs]</a><span class="k">def</span> <span class="nf">attach_description</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">description</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Add description to the object.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add description to the object.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        obj: Object to add description to.</span>
@@ -594,7 +677,7 @@
 
 
 <div class="viewcode-block" id="Class"><a class="viewcode-back" href="../../../api_reference/syft.ast.klass.html#syft.ast.klass.Class">[docs]</a><span class="k">class</span> <span class="nc">Class</span><span class="p">(</span><span class="n">Callable</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A Class attribute represents a class.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A Class attribute represents a class.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="Class.__init__"><a class="viewcode-back" href="../../../api_reference/syft.ast.klass.html#syft.ast.klass.Class.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -604,7 +687,7 @@
         <span class="n">return_type_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
         <span class="n">client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Base constructor for Class Attribute.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Base constructor for Class Attribute.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            path_and_name: The path for the current node, e.g. `syft.lib.python.List`.</span>
@@ -625,7 +708,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pointer_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="n">CallableT</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Get pointer type of Class Attribute.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get pointer type of Class Attribute.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            `pointer_type` of the object.</span>
@@ -633,10 +716,13 @@
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pointer_name</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Class.create_pointer_class"><a class="viewcode-back" href="../../../api_reference/syft.ast.klass.html#syft.ast.klass.Class.create_pointer_class">[docs]</a>    <span class="k">def</span> <span class="nf">create_pointer_class</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create pointer type for object.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create pointer type for object.&quot;&quot;&quot;</span>
         <span class="n">attrs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">CallableT</span><span class="p">,</span> <span class="nb">property</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">attr_path_and_name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="s2">&quot;path_and_name&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">attr_path_and_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="s2">&quot;path_and_name&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">attr_path_and_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing path_and_name in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="c1"># attr_path_and_name None</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">callable</span><span class="o">.</span><span class="n">Callable</span><span class="p">):</span>
@@ -698,16 +784,44 @@
         <span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;__name__&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
         <span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;__module__&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span>
 
-        <span class="n">klass_pointer</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pointer_name</span><span class="p">,</span> <span class="p">(</span><span class="n">Pointer</span><span class="p">,),</span> <span class="n">attrs</span><span class="p">)</span>
+        <span class="c1"># if the object already has a pointer class specified, use that instead of creating</span>
+        <span class="c1"># an empty subclass of Pointer</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">object_ref</span><span class="p">,</span> <span class="s2">&quot;PointerClassOverride&quot;</span><span class="p">):</span>
+
+            <span class="n">klass_pointer</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">object_ref</span><span class="p">,</span> <span class="s2">&quot;PointerClassOverride&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">attrs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+                <span class="c1"># only override functioanlity of AST attributes if they</span>
+                <span class="c1"># don&#39;t already exist on the PointerClassOverride class</span>
+                <span class="c1"># (the opposite of inheritance)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">klass_pointer</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">klass_pointer</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># TODO: cache attribute in backup_ location so that we can use them if we want</span>
+                    <span class="k">pass</span>
+
+        <span class="c1"># no specific pointer class found, let&#39;s make an empty subclass of Pointer instead</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">klass_pointer</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pointer_name</span><span class="p">,</span> <span class="p">(</span><span class="n">Pointer</span><span class="p">,),</span> <span class="n">attrs</span><span class="p">)</span>
+
         <span class="nb">setattr</span><span class="p">(</span><span class="n">klass_pointer</span><span class="p">,</span> <span class="s2">&quot;path_and_name&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_and_name</span><span class="p">)</span>
-        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pointer_name</span><span class="p">,</span> <span class="n">klass_pointer</span><span class="p">)</span></div>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pointer_name</span><span class="p">,</span> <span class="n">klass_pointer</span><span class="p">)</span>
+
+        <span class="n">module_type</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">sys</span><span class="p">)</span>
+
+        <span class="n">parent</span> <span class="o">=</span> <span class="n">get_loaded_syft</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="k">if</span> <span class="n">part</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">parent</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">:</span>
+                <span class="n">parent</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">part</span><span class="p">]</span> <span class="o">=</span> <span class="n">module_type</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">part</span><span class="p">)</span>
+            <span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">part</span><span class="p">]</span>
+        <span class="n">parent</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">klass_pointer</span></div>
 
 <div class="viewcode-block" id="Class.store_init_args"><a class="viewcode-back" href="../../../api_reference/syft.ast.klass.html#syft.ast.klass.Class.store_init_args">[docs]</a>    <span class="k">def</span> <span class="nf">store_init_args</span><span class="p">(</span><span class="n">outer_self</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Stores args and kwargs of outer_self init by wrapping the init method.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">init_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">init_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">outer_self</span><span class="o">.</span><span class="n">object_ref</span><span class="o">.</span><span class="n">_wrapped_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_init_args</span> <span class="o">=</span> <span class="n">args</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_init_kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
@@ -719,7 +833,7 @@
             <span class="n">outer_self</span><span class="o">.</span><span class="n">object_ref</span><span class="o">.</span><span class="fm">__init__</span> <span class="o">=</span> <span class="n">init_wrapper</span></div>
 
 <div class="viewcode-block" id="Class.create_send_method"><a class="viewcode-back" href="../../../api_reference/syft.ast.klass.html#syft.ast.klass.Class.create_send_method">[docs]</a>    <span class="k">def</span> <span class="nf">create_send_method</span><span class="p">(</span><span class="n">outer_self</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Add `send` method to `outer_self.object_ref`.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add `send` method to `outer_self.object_ref`.&quot;&quot;&quot;</span>
 
         <span class="k">def</span> <span class="nf">send</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
@@ -728,8 +842,12 @@
             <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
             <span class="n">tags</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">searchable</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Pointer</span><span class="p">:</span>
-            <span class="sd">&quot;&quot;&quot;Send obj to client and return pointer to the object.</span>
+            <span class="n">chunk_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">send_to_blob_storage</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Pointer</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Pointer</span><span class="p">,</span> <span class="n">SaveObjectAction</span><span class="p">]]:</span>
+
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Send obj to client and return pointer to the object.</span>
 
 <span class="sd">            Args:</span>
 <span class="sd">                self: Object to be sent.</span>
@@ -747,11 +865,10 @@
             <span class="k">if</span> <span class="n">searchable</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;`searchable` is deprecated please use `pointable` in future&quot;</span>
                 <span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="nb">print</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                    <span class="n">msg</span><span class="p">,</span>
-                    <span class="ne">DeprecationWarning</span><span class="p">,</span>
-                <span class="p">)</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
                 <span class="n">pointable</span> <span class="o">=</span> <span class="n">searchable</span>
+
+            <span class="n">chunk_size</span> <span class="o">=</span> <span class="n">chunk_size</span> <span class="k">if</span> <span class="n">chunk_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">536870912</span>  <span class="c1"># 500 MB</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">):</span>
                 <span class="k">try</span><span class="p">:</span>
@@ -777,8 +894,13 @@
 
             <span class="n">id_at_location</span> <span class="o">=</span> <span class="n">UID</span><span class="p">()</span>
 
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;init_pointer&quot;</span><span class="p">):</span>
+                <span class="n">constructor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_pointer</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">constructor</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">outer_self</span><span class="p">,</span> <span class="n">outer_self</span><span class="o">.</span><span class="n">pointer_name</span><span class="p">)</span>
+
             <span class="c1"># Step 1: create pointer which will point to result</span>
-            <span class="n">ptr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">outer_self</span><span class="p">,</span> <span class="n">outer_self</span><span class="o">.</span><span class="n">pointer_name</span><span class="p">)(</span>
+            <span class="n">ptr</span> <span class="o">=</span> <span class="n">constructor</span><span class="p">(</span>
                 <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
                 <span class="n">id_at_location</span><span class="o">=</span><span class="n">id_at_location</span><span class="p">,</span>
                 <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span>
@@ -792,29 +914,65 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">ptr</span><span class="o">.</span><span class="n">gc_enabled</span> <span class="o">=</span> <span class="kc">True</span>
 
-            <span class="c1"># Step 2: create message which contains object to send</span>
+            <span class="c1"># Check if the client has blob storage enabled</span>
+            <span class="c1"># blob storage can only be used if client node has blob storage enabled.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="s2">&quot;settings&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">client</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s2">&quot;use_blob_storage&quot;</span><span class="p">,</span> <span class="kc">False</span>
+            <span class="p">):</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">**Warning**: Blob Storage is disabled on this client node. Switching to database store.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+                <span class="n">send_to_blob_storage</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="c1"># Check if the obj satisfies the min requirements for it to be stored in blob store</span>
+            <span class="n">store_obj_in_blob_store</span> <span class="o">=</span> <span class="n">check_send_to_blob_storage</span><span class="p">(</span>
+                <span class="n">obj</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_blob_storage</span><span class="o">=</span><span class="n">send_to_blob_storage</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">store_obj_in_blob_store</span><span class="p">:</span>
+                <span class="n">store_data</span> <span class="o">=</span> <span class="n">upload_to_s3_using_presigned</span><span class="p">(</span>
+                    <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
+                    <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+                    <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
+                    <span class="n">asset_name</span><span class="o">=</span><span class="n">id_at_location</span><span class="o">.</span><span class="n">no_dash</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">store_data</span> <span class="o">=</span> <span class="bp">self</span>
+
+            <span class="c1"># Step 6: create message which contains object to send</span>
             <span class="n">storable</span> <span class="o">=</span> <span class="n">StorableObject</span><span class="p">(</span>
                 <span class="nb">id</span><span class="o">=</span><span class="n">ptr</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">,</span>
-                <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">store_data</span><span class="p">,</span>
                 <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span>
                 <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
                 <span class="n">search_permissions</span><span class="o">=</span><span class="p">{</span><span class="n">VERIFYALL</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span> <span class="k">if</span> <span class="n">pointable</span> <span class="k">else</span> <span class="p">{},</span>
             <span class="p">)</span>
             <span class="n">obj_msg</span> <span class="o">=</span> <span class="n">SaveObjectAction</span><span class="p">(</span><span class="n">obj</span><span class="o">=</span><span class="n">storable</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">client</span><span class="o">.</span><span class="n">address</span><span class="p">)</span>
 
-            <span class="c1"># Step 3: send message</span>
-            <span class="n">client</span><span class="o">.</span><span class="n">send_immediate_msg_without_reply</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">obj_msg</span><span class="p">)</span>
+            <span class="n">immediate</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;immediate&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 
-            <span class="c1"># Step 4: return pointer</span>
-            <span class="k">return</span> <span class="n">ptr</span>
+            <span class="k">if</span> <span class="n">immediate</span><span class="p">:</span>
+                <span class="c1"># Step 7: send message</span>
+                <span class="n">client</span><span class="o">.</span><span class="n">send_immediate_msg_without_reply</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">obj_msg</span><span class="p">)</span>
+
+                <span class="c1"># Setp 8: add it in the lit of processing pointers</span>
+                <span class="c1"># Add in client side a list of pointers that</span>
+                <span class="c1"># might be in the middle of some computation making it not</span>
+                <span class="c1"># available immediately.</span>
+                <span class="n">client</span><span class="o">.</span><span class="n">processing_pointers</span><span class="p">[</span><span class="n">id_at_location</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+                <span class="c1"># Step 9: return pointer</span>
+                <span class="k">return</span> <span class="n">ptr</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">ptr</span><span class="p">,</span> <span class="n">obj_msg</span>
 
         <span class="n">aggressive_set_attr</span><span class="p">(</span><span class="n">obj</span><span class="o">=</span><span class="n">outer_self</span><span class="o">.</span><span class="n">object_ref</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;send&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="n">send</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Class.create_storable_object_attr_convenience_methods"><a class="viewcode-back" href="../../../api_reference/syft.ast.klass.html#syft.ast.klass.Class.create_storable_object_attr_convenience_methods">[docs]</a>    <span class="k">def</span> <span class="nf">create_storable_object_attr_convenience_methods</span><span class="p">(</span><span class="n">outer_self</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Add methods to set tag and description to `outer_self.object_ref`.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add methods to set tag and description to `outer_self.object_ref`.&quot;&quot;&quot;</span>
 
         <span class="k">def</span> <span class="nf">tag</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="n">tags</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
-            <span class="sd">&quot;&quot;&quot;Add tags to object.</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Add tags to object.</span>
 
 <span class="sd">            Args:</span>
 <span class="sd">                self: object to add tags to.</span>
@@ -827,7 +985,7 @@
             <span class="k">return</span> <span class="bp">self</span>
 
         <span class="k">def</span> <span class="nf">describe</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">description</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
-            <span class="sd">&quot;&quot;&quot;Add description to object.</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Add description to object.</span>
 
 <span class="sd">            Args:</span>
 <span class="sd">                self: object to add description to.</span>
@@ -850,7 +1008,7 @@
         <span class="n">framework_reference</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ModuleType</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">is_static</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;The add_path method adds new nodes in AST based on type of current node and type of object to be added.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The add_path method adds new nodes in AST based on type of current node and type of object to be added.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            path: The node path added in AST, e.g. `syft.lib.python.List` or [&quot;syft&quot;, &quot;lib&quot;, &quot;python&quot;, &quot;List].</span>
@@ -913,7 +1071,7 @@
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Get pointer to attribute.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get pointer to attribute.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            item: Attribute.</span>
@@ -935,15 +1093,17 @@
 
             <span class="k">return</span> <span class="n">target_object</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">critical</span><span class="p">(</span>
-                <span class="s2">&quot;__getattribute__ failed. If you are trying to access an EnumAttribute or a &quot;</span>
-                <span class="s2">&quot;StaticAttribute, be sure they have been added to the AST. Falling back on&quot;</span>
-                <span class="s2">&quot;__getattr__ to search in self.attrs for the requested field.&quot;</span>
-            <span class="p">)</span>
+            <span class="c1"># TODO: this gets really chatty when doing SMPC mulitplication. Figure out why.</span>
+            <span class="c1"># critical(</span>
+            <span class="c1">#     f&quot;{self.path_and_name}__getattribute__[{item}] failed. If you</span>
+            <span class="c1">#     are trying to access an EnumAttribute or a &quot;</span>
+            <span class="c1">#     &quot;StaticAttribute, be sure they have been added to the AST. Falling back on&quot;</span>
+            <span class="c1">#     &quot;__getattr__ to search in self.attrs for the requested field.&quot;</span>
+            <span class="c1"># )</span>
             <span class="n">traceback_and_raise</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Get value of attribute `item` of the object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get value of attribute `item` of the object.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            item: Attribute.</span>
@@ -968,7 +1128,7 @@
         <span class="k">return</span> <span class="n">attrs</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Change value of attribute `key` to `value`.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Change value of attribute `key` to `value`.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            key: name of attribute to change.</span>
@@ -986,10 +1146,14 @@
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
 
 
+<span class="c1"># TODO: this should move out of AST into a util somewhere? or osmething related to Pointer</span>
 <div class="viewcode-block" id="pointerize_args_and_kwargs"><a class="viewcode-back" href="../../../api_reference/syft.ast.klass.html#syft.ast.klass.pointerize_args_and_kwargs">[docs]</a><span class="k">def</span> <span class="nf">pointerize_args_and_kwargs</span><span class="p">(</span>
-    <span class="n">args</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">]],</span> <span class="n">kwargs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">client</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="n">args</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">]],</span>
+    <span class="n">kwargs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">client</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">gc_enabled</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-    <span class="sd">&quot;&quot;&quot;Get pointers to args and kwargs.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get pointers to args and kwargs.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        args: List of arguments.</span>
@@ -1004,23 +1168,33 @@
     <span class="c1"># this ensures that any args which are passed in from the user side are first</span>
     <span class="c1"># converted to pointers and sent then the pointer values are used for the</span>
     <span class="c1"># method invocation</span>
+    <span class="n">obj_lst</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">pointer_args</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">pointer_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
         <span class="c1"># check if its already a pointer</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">Pointer</span><span class="p">):</span>
-            <span class="n">arg_ptr</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">pointable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">arg_ptr</span><span class="p">,</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">pointable</span><span class="o">=</span><span class="ow">not</span> <span class="n">gc_enabled</span><span class="p">,</span> <span class="n">immediate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">obj_lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
             <span class="n">pointer_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg_ptr</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">pointer_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+            <span class="n">arg</span><span class="o">.</span><span class="n">gc_enabled</span> <span class="o">=</span> <span class="n">gc_enabled</span>
 
     <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="c1"># check if its already a pointer</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">Pointer</span><span class="p">):</span>
-            <span class="n">arg_ptr</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">pointable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">arg_ptr</span><span class="p">,</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">pointable</span><span class="o">=</span><span class="ow">not</span> <span class="n">gc_enabled</span><span class="p">,</span> <span class="n">immediate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">obj_lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
             <span class="n">pointer_kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">arg_ptr</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">pointer_kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">arg</span>
+
+    <span class="k">if</span> <span class="n">obj_lst</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">ActionSequence</span><span class="p">(</span><span class="n">obj_lst</span><span class="o">=</span><span class="n">obj_lst</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">client</span><span class="o">.</span><span class="n">address</span><span class="p">)</span>
+
+        <span class="c1"># send message to client</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">send_immediate_msg_without_reply</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">pointer_args</span><span class="p">,</span> <span class="n">pointer_kwargs</span></div>
 </pre></div>

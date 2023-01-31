@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -172,14 +178,17 @@
 <span></span><span class="c1"># stdlib</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
 
-<span class="c1"># syft relative</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">...core.common</span> <span class="kn">import</span> <span class="n">UID</span>
-<span class="kn">from</span> <span class="nn">...core.common.serde.serializable</span> <span class="kn">import</span> <span class="n">Serializable</span>
 
 
-<span class="k">class</span> <span class="nc">PyPrimitive</span><span class="p">(</span><span class="n">Serializable</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">class</span> <span class="nc">PyPrimitive</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temporary_box</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">:</span> <span class="n">UID</span>
+
+        <span class="c1"># sometimes we need to serialize a python primitive in such a way that we can</span>
+        <span class="c1"># deserialize it back as that primitive later. This flag allows us to do that.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temporary_box</span> <span class="o">=</span> <span class="n">temporary_box</span>
 
 <div class="viewcode-block" id="PyPrimitive.upcast"><a class="viewcode-back" href="../../../../api_reference/syft.lib.python.html#syft.lib.python.PyPrimitive.upcast">[docs]</a>    <span class="k">def</span> <span class="nf">upcast</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">pass</span></div>

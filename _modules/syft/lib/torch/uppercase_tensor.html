@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -174,13 +180,13 @@
 <span class="c1"># third party</span>
 <span class="kn">import</span> <span class="nn">torch</span> <span class="k">as</span> <span class="nn">th</span>
 
-<span class="c1"># syft relative</span>
-<span class="kn">from</span> <span class="nn">...generate_wrapper</span> <span class="kn">import</span> <span class="n">GenerateWrapper</span>
-<span class="kn">from</span> <span class="nn">...lib.torch.tensor_util</span> <span class="kn">import</span> <span class="n">tensor_deserializer</span>
-<span class="kn">from</span> <span class="nn">...lib.torch.tensor_util</span> <span class="kn">import</span> <span class="n">tensor_serializer</span>
+<span class="c1"># relative</span>
+<span class="kn">from</span> <span class="nn">...core.common.serde.serializable</span> <span class="kn">import</span> <span class="n">serializable</span>
 <span class="kn">from</span> <span class="nn">...logger</span> <span class="kn">import</span> <span class="n">warning</span>
 <span class="kn">from</span> <span class="nn">...proto.lib.torch.device_pb2</span> <span class="kn">import</span> <span class="n">Device</span> <span class="k">as</span> <span class="n">Device_PB</span>
 <span class="kn">from</span> <span class="nn">...proto.lib.torch.tensor_pb2</span> <span class="kn">import</span> <span class="n">TensorProto</span> <span class="k">as</span> <span class="n">Tensor_PB</span>
+<span class="kn">from</span> <span class="nn">.tensor_util</span> <span class="kn">import</span> <span class="n">tensor_deserializer</span>
+<span class="kn">from</span> <span class="nn">.tensor_util</span> <span class="kn">import</span> <span class="n">tensor_serializer</span>
 
 <span class="n">torch_tensor_type</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">th</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]))</span>
 
@@ -229,7 +235,7 @@
     <span class="k">return</span> <span class="n">tensor</span></div>
 
 
-<span class="n">GenerateWrapper</span><span class="p">(</span>
+<span class="n">serializable</span><span class="p">(</span><span class="n">generate_wrapper</span><span class="o">=</span><span class="kc">True</span><span class="p">)(</span>
     <span class="n">wrapped_type</span><span class="o">=</span><span class="n">torch_tensor_type</span><span class="p">,</span>
     <span class="n">import_path</span><span class="o">=</span><span class="s2">&quot;torch.Tensor&quot;</span><span class="p">,</span>
     <span class="n">protobuf_scheme</span><span class="o">=</span><span class="n">Tensor_PB</span><span class="p">,</span>

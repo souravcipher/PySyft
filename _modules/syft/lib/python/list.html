@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -178,12 +184,12 @@
 
 <span class="c1"># third party</span>
 <span class="kn">from</span> <span class="nn">google.protobuf.reflection</span> <span class="kn">import</span> <span class="n">GeneratedProtocolMessageType</span>
+<span class="kn">from</span> <span class="nn">typing_extensions</span> <span class="kn">import</span> <span class="n">SupportsIndex</span>
 
-<span class="c1"># syft relative</span>
-<span class="kn">from</span> <span class="nn">...</span> <span class="kn">import</span> <span class="n">deserialize</span>
-<span class="kn">from</span> <span class="nn">...</span> <span class="kn">import</span> <span class="n">serialize</span>
-<span class="kn">from</span> <span class="nn">...core.common</span> <span class="kn">import</span> <span class="n">UID</span>
-<span class="kn">from</span> <span class="nn">...core.common.serde.serializable</span> <span class="kn">import</span> <span class="n">bind_protobuf</span>
+<span class="c1"># relative</span>
+<span class="kn">from</span> <span class="nn">...core.common.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span> <span class="k">as</span> <span class="n">deserialize</span>
+<span class="kn">from</span> <span class="nn">...core.common.serde.serializable</span> <span class="kn">import</span> <span class="n">serializable</span>
+<span class="kn">from</span> <span class="nn">...core.common.serde.serialize</span> <span class="kn">import</span> <span class="n">_serialize</span> <span class="k">as</span> <span class="n">serialize</span>
 <span class="kn">from</span> <span class="nn">...proto.lib.python.list_pb2</span> <span class="kn">import</span> <span class="n">List</span> <span class="k">as</span> <span class="n">List_PB</span>
 <span class="kn">from</span> <span class="nn">.iterator</span> <span class="kn">import</span> <span class="n">Iterator</span>
 <span class="kn">from</span> <span class="nn">.primitive_factory</span> <span class="kn">import</span> <span class="n">PrimitiveFactory</span>
@@ -199,29 +205,22 @@
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="List"><a class="viewcode-back" href="../../../../api_reference/syft.lib.python.html#syft.lib.python.list.List">[docs]</a><span class="nd">@bind_protobuf</span>
+<div class="viewcode-block" id="List"><a class="viewcode-back" href="../../../../api_reference/syft.lib.python.html#syft.lib.python.list.List">[docs]</a><span class="nd">@serializable</span><span class="p">()</span>
 <span class="k">class</span> <span class="nc">List</span><span class="p">(</span><span class="n">UserList</span><span class="p">,</span> <span class="n">PyPrimitive</span><span class="p">):</span>
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;_id&quot;</span><span class="p">,</span> <span class="s2">&quot;_index&quot;</span><span class="p">]</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;_index&quot;</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UID</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">temporary_box</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">value</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="n">UserList</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="n">PyPrimitive</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temporary_box</span><span class="o">=</span><span class="n">temporary_box</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">:</span> <span class="n">UID</span> <span class="o">=</span> <span class="nb">id</span> <span class="k">if</span> <span class="nb">id</span> <span class="k">else</span> <span class="n">UID</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="mi">0</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UID</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;We reveal PyPrimitive.id as a property to discourage users and</span>
-<span class="sd">        developers of Syft from modifying .id attributes after an object</span>
-<span class="sd">        has been initialized.</span>
-
-<span class="sd">        :return: returns the unique id of the object</span>
-<span class="sd">        :rtype: UID</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span>
 
 <div class="viewcode-block" id="List.upcast"><a class="viewcode-back" href="../../../../api_reference/syft.lib.python.html#syft.lib.python.list.List.upcast">[docs]</a>    <span class="k">def</span> <span class="nf">upcast</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ListType</span><span class="p">:</span>
         <span class="c1"># recursively upcast</span>
@@ -246,11 +245,13 @@
 
     <span class="k">def</span> <span class="fm">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SyPrimitiveRet</span><span class="p">:</span>
         <span class="n">res</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__iadd__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">PrimitiveFactory</span><span class="o">.</span><span class="n">generate_primitive</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">res</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">PrimitiveFactory</span><span class="o">.</span><span class="n">generate_primitive</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">res</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__imul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SyPrimitiveRet</span><span class="p">:</span>
         <span class="n">res</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__imul__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">PrimitiveFactory</span><span class="o">.</span><span class="n">generate_primitive</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">res</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">PrimitiveFactory</span><span class="o">.</span><span class="n">generate_primitive</span><span class="p">(</span>
+            <span class="n">value</span><span class="o">=</span><span class="n">res</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SyPrimitiveRet</span><span class="p">:</span>
         <span class="n">res</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__add__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
@@ -292,7 +293,7 @@
         <span class="n">res</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__len__</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">PrimitiveFactory</span><span class="o">.</span><span class="n">generate_primitive</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">res</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">slice</span><span class="p">,</span> <span class="n">Slice</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">slice</span><span class="p">,</span> <span class="n">Slice</span><span class="p">,</span> <span class="n">SupportsIndex</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">Slice</span><span class="p">):</span>
             <span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">upcast</span><span class="p">()</span>
         <span class="n">res</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
@@ -307,7 +308,6 @@
 
 <div class="viewcode-block" id="List.copy"><a class="viewcode-back" href="../../../../api_reference/syft.lib.python.html#syft.lib.python.list.List.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;List&quot;</span><span class="p">:</span>
         <span class="n">res</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">res</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">UID</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">res</span></div>
 
 <div class="viewcode-block" id="List.append"><a class="viewcode-back" href="../../../../api_reference/syft.lib.python.html#syft.lib.python.list.List.append">[docs]</a>    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -319,21 +319,24 @@
         <span class="k">return</span> <span class="n">PrimitiveFactory</span><span class="o">.</span><span class="n">generate_primitive</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">res</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_object2proto</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List_PB</span><span class="p">:</span>
-        <span class="n">id_</span> <span class="o">=</span> <span class="n">serialize</span><span class="p">(</span><span class="n">obj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
         <span class="n">downcasted</span> <span class="o">=</span> <span class="p">[</span><span class="n">downcast</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">element</span><span class="p">)</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">]</span>
         <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">serialize</span><span class="p">(</span><span class="n">obj</span><span class="o">=</span><span class="n">element</span><span class="p">,</span> <span class="n">to_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">downcasted</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">List_PB</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">id_</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">List_PB</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+            <span class="n">temporary_box</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">temporary_box</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="p">:</span> <span class="n">List_PB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;List&quot;</span><span class="p">:</span>
-        <span class="n">id_</span><span class="p">:</span> <span class="n">UID</span> <span class="o">=</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
         <span class="n">value</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c1"># list comprehension doesn&#39;t work since it results in a</span>
         <span class="c1"># [generator()] which is not equal to an empty list</span>
         <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">proto</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
             <span class="n">value</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">upcast</span><span class="p">(</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">element</span><span class="p">,</span> <span class="n">from_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">)))</span>
-        <span class="n">new_list</span> <span class="o">=</span> <span class="n">List</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
-        <span class="n">new_list</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">id_</span>
+        <span class="n">new_list</span> <span class="o">=</span> <span class="n">List</span><span class="p">(</span>
+            <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span>
+            <span class="n">temporary_box</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">temporary_box</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">new_list</span>
 
 <div class="viewcode-block" id="List.get_protobuf_schema"><a class="viewcode-back" href="../../../../api_reference/syft.lib.python.html#syft.lib.python.list.List.get_protobuf_schema">[docs]</a>    <span class="nd">@staticmethod</span>

@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -179,14 +185,14 @@
 <span class="kn">from</span> <span class="nn">google.protobuf.reflection</span> <span class="kn">import</span> <span class="n">GeneratedProtocolMessageType</span>
 <span class="kn">from</span> <span class="nn">nacl.signing</span> <span class="kn">import</span> <span class="n">VerifyKey</span>
 
-<span class="c1"># syft relative</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">.....</span> <span class="kn">import</span> <span class="n">lib</span>
-<span class="kn">from</span> <span class="nn">.....</span> <span class="kn">import</span> <span class="n">serialize</span>
 <span class="kn">from</span> <span class="nn">.....proto.core.node.common.action.get_set_static_attribute_pb2</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">GetSetStaticAttributeAction</span> <span class="k">as</span> <span class="n">GetSetStaticAttributeAction_PB</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">....common.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span>
-<span class="kn">from</span> <span class="nn">....common.serde.serializable</span> <span class="kn">import</span> <span class="n">bind_protobuf</span>
+<span class="kn">from</span> <span class="nn">....common.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span> <span class="k">as</span> <span class="n">deserialize</span>
+<span class="kn">from</span> <span class="nn">....common.serde.serializable</span> <span class="kn">import</span> <span class="n">serializable</span>
+<span class="kn">from</span> <span class="nn">....common.serde.serialize</span> <span class="kn">import</span> <span class="n">_serialize</span> <span class="k">as</span> <span class="n">serialize</span>
 <span class="kn">from</span> <span class="nn">....common.uid</span> <span class="kn">import</span> <span class="n">UID</span>
 <span class="kn">from</span> <span class="nn">....io.address</span> <span class="kn">import</span> <span class="n">Address</span>
 <span class="kn">from</span> <span class="nn">....store.storeable_object</span> <span class="kn">import</span> <span class="n">StorableObject</span>
@@ -200,7 +206,7 @@
     <span class="n">GET</span> <span class="o">=</span> <span class="mi">2</span></div>
 
 
-<span class="nd">@bind_protobuf</span>
+<span class="nd">@serializable</span><span class="p">()</span>
 <span class="k">class</span> <span class="nc">GetSetStaticAttributeAction</span><span class="p">(</span><span class="n">ImmediateActionWithoutReply</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -218,8 +224,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">set_arg</span> <span class="o">=</span> <span class="n">set_arg</span>
 
     <span class="k">def</span> <span class="nf">intersect_keys</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">left</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">VerifyKey</span><span class="p">,</span> <span class="n">UID</span><span class="p">],</span> <span class="n">right</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">VerifyKey</span><span class="p">,</span> <span class="n">UID</span><span class="p">]</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="n">VerifyKey</span><span class="p">,</span> <span class="n">UID</span><span class="p">]:</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">left</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">VerifyKey</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UID</span><span class="p">]],</span>
+        <span class="n">right</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">VerifyKey</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UID</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="n">VerifyKey</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UID</span><span class="p">]]:</span>
         <span class="k">return</span> <span class="n">RunClassMethodAction</span><span class="o">.</span><span class="n">intersect_keys</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">execute_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">AbstractNode</span><span class="p">,</span> <span class="n">verify_key</span><span class="p">:</span> <span class="n">VerifyKey</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -229,7 +237,7 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_arg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;MAKE PROPER SCHEMA&quot;</span><span class="p">)</span>
 
-            <span class="n">resolved_arg</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">get_object</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">set_arg</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">)</span>
+            <span class="n">resolved_arg</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">set_arg</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">)</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">static_attribute_solver</span><span class="o">.</span><span class="n">solve_set_value</span><span class="p">(</span><span class="n">resolved_arg</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">action</span> <span class="o">==</span> <span class="n">StaticAttributeAction</span><span class="o">.</span><span class="n">GET</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">static_attribute_solver</span><span class="o">.</span><span class="n">solve_get_value</span><span class="p">()</span>
@@ -264,7 +272,7 @@
         <span class="n">node</span><span class="o">.</span><span class="n">store</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
 
     <span class="k">def</span> <span class="nf">_object2proto</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GetSetStaticAttributeAction_PB</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Returns a protobuf serialization of self.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a protobuf serialization of self.</span>
 <span class="sd">        As a requirement of all objects which inherit from Serializable,</span>
 <span class="sd">        this method transforms the current object into the corresponding</span>
 <span class="sd">        Protobuf object so that it can be further serialized.</span>
@@ -299,7 +307,7 @@
     <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span>
         <span class="n">proto</span><span class="p">:</span> <span class="n">GetSetStaticAttributeAction_PB</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;GetSetStaticAttributeAction&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Creates a ObjectWithID from a protobuf</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a ObjectWithID from a protobuf</span>
 <span class="sd">        As a requirement of all objects which inherit from Serializable,</span>
 <span class="sd">        this method transforms a protobuf object into an instance of this class.</span>
 <span class="sd">        :return: returns an instance of GetOrSetPropertyAction</span>
@@ -310,10 +318,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">GetSetStaticAttributeAction</span><span class="p">(</span>
             <span class="n">path</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-            <span class="n">id_at_location</span><span class="o">=</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">),</span>
-            <span class="n">address</span><span class="o">=</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">address</span><span class="p">),</span>
-            <span class="n">msg_id</span><span class="o">=</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">msg_id</span><span class="p">),</span>
-            <span class="n">set_arg</span><span class="o">=</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">set_arg</span><span class="p">)</span>
+            <span class="n">id_at_location</span><span class="o">=</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">),</span>
+            <span class="n">address</span><span class="o">=</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">address</span><span class="p">),</span>
+            <span class="n">msg_id</span><span class="o">=</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">msg_id</span><span class="p">),</span>
+            <span class="n">set_arg</span><span class="o">=</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">set_arg</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">proto</span><span class="o">.</span><span class="n">HasField</span><span class="p">(</span><span class="s2">&quot;set_arg&quot;</span><span class="p">)</span>
             <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">action</span><span class="o">=</span><span class="n">StaticAttributeAction</span><span class="p">(</span><span class="n">proto</span><span class="o">.</span><span class="n">action</span><span class="p">),</span>
@@ -321,7 +329,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_protobuf_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">GeneratedProtocolMessageType</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
 <span class="sd">        As a part of serialization and deserialization, we need the ability to</span>
 <span class="sd">        lookup the protobuf object type directly from the object type. This</span>
 <span class="sd">        static method allows us to do this.</span>

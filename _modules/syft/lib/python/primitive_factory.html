@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -179,7 +185,7 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
 
-<span class="c1"># syft relative</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">python</span>
 <span class="kn">from</span> <span class="nn">...core.common</span> <span class="kn">import</span> <span class="n">UID</span>
 <span class="kn">from</span> <span class="nn">...logger</span> <span class="kn">import</span> <span class="n">traceback_and_raise</span>
@@ -205,6 +211,7 @@
     <span class="n">UserList</span><span class="p">,</span>
     <span class="n">UserString</span><span class="p">,</span>
     <span class="n">OrderedDict</span><span class="p">,</span>
+    <span class="nb">bytes</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="n">PrimitiveType</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span>
@@ -225,6 +232,7 @@
     <span class="n">UserList</span><span class="p">,</span>
     <span class="n">UserString</span><span class="p">,</span>
     <span class="n">OrderedDict</span><span class="p">,</span>
+    <span class="nb">bytes</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -243,21 +251,25 @@
         <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">PrimitiveType</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">NotImplemented</span><span class="p">),</span> <span class="n">PyPrimitive</span><span class="p">],</span>  <span class="c1"># type: ignore</span>
         <span class="nb">id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UID</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">recurse</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">temporary_box</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">PyPrimitive</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">value</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">python</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">python</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">python</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">python</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">python</span><span class="o">.</span><span class="n">Bytes</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">python</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">python</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">complex</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">python</span><span class="o">.</span><span class="n">Complex</span><span class="p">(</span><span class="n">real</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">imag</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">python</span><span class="o">.</span><span class="n">Complex</span><span class="p">(</span><span class="n">real</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">imag</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">imag</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">python</span><span class="o">.</span><span class="n">Tuple</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
@@ -266,32 +278,30 @@
             <span class="k">return</span> <span class="n">python</span><span class="o">.</span><span class="n">Set</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">python</span><span class="o">.</span><span class="n">Slice</span><span class="p">(</span>
-                <span class="n">start</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="nb">id</span>
-            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">python</span><span class="o">.</span><span class="n">Slice</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">step</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">range</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">python</span><span class="o">.</span><span class="n">Range</span><span class="p">(</span>
-                <span class="n">start</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="nb">id</span>
-            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">python</span><span class="o">.</span><span class="n">Range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">step</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="n">UserList</span><span class="p">]:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">recurse</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">python</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">python</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># allow recursive primitive downcasting</span>
                 <span class="n">new_list</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>  <span class="c1"># type: ignore[union-attr]</span>
                         <span class="k">if</span> <span class="n">isprimitive</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">val</span><span class="p">):</span>
                             <span class="n">new_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                                 <span class="n">PrimitiveFactory</span><span class="o">.</span><span class="n">generate_primitive</span><span class="p">(</span>
-                                    <span class="n">value</span><span class="o">=</span><span class="n">val</span><span class="p">,</span> <span class="n">recurse</span><span class="o">=</span><span class="n">recurse</span>
+                                    <span class="n">value</span><span class="o">=</span><span class="n">val</span><span class="p">,</span>
+                                    <span class="n">recurse</span><span class="o">=</span><span class="n">recurse</span><span class="p">,</span>
+                                    <span class="n">temporary_box</span><span class="o">=</span><span class="n">temporary_box</span><span class="p">,</span>
                                 <span class="p">)</span>
                             <span class="p">)</span>
                         <span class="k">else</span><span class="p">:</span>
                             <span class="n">new_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">python</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">new_list</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">python</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">new_list</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">UserDict</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">]:</span>
             <span class="n">constructor</span> <span class="o">=</span> <span class="p">(</span>
@@ -311,17 +321,17 @@
                         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">items</span><span class="p">():</span>
                             <span class="k">if</span> <span class="n">isprimitive</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">val</span><span class="p">):</span>
                                 <span class="n">new_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">PrimitiveFactory</span><span class="o">.</span><span class="n">generate_primitive</span><span class="p">(</span>
-                                    <span class="n">value</span><span class="o">=</span><span class="n">val</span><span class="p">,</span> <span class="n">recurse</span><span class="o">=</span><span class="n">recurse</span>
+                                    <span class="n">value</span><span class="o">=</span><span class="n">val</span><span class="p">,</span>
+                                    <span class="n">recurse</span><span class="o">=</span><span class="n">recurse</span><span class="p">,</span>
+                                    <span class="n">temporary_box</span><span class="o">=</span><span class="n">temporary_box</span><span class="p">,</span>
                                 <span class="p">)</span>
                             <span class="k">else</span><span class="p">:</span>
                                 <span class="n">new_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
-            <span class="c1"># if we pass id in as a kwargs it ends up in the actual dict</span>
-            <span class="k">if</span> <span class="nb">id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">new_dict</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="nb">id</span>
+
             <span class="k">return</span> <span class="n">new_dict</span>
 
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">UserString</span><span class="p">]:</span>
-            <span class="k">return</span> <span class="n">python</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">python</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">temporary_box</span><span class="o">=</span><span class="n">temporary_box</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">NotImplemented</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">value</span>

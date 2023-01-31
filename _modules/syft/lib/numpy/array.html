@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -169,17 +175,29 @@
               <div>
                 
   <h1>Source code for syft.lib.numpy.array</h1><div class="highlight"><pre>
-<span></span><span class="c1"># third party</span>
+<span></span><span class="c1"># stdlib</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+
+<span class="c1"># third party</span>
+<span class="kn">from</span> <span class="nn">capnp.lib.capnp</span> <span class="kn">import</span> <span class="n">_DynamicStructBuilder</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pyarrow</span> <span class="k">as</span> <span class="nn">pa</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 
-<span class="c1"># syft relative</span>
+<span class="c1"># relative</span>
+<span class="kn">from</span> <span class="nn">...core.common.serde.capnp</span> <span class="kn">import</span> <span class="n">CapnpModule</span>
+<span class="kn">from</span> <span class="nn">...core.common.serde.capnp</span> <span class="kn">import</span> <span class="n">chunk_bytes</span>
+<span class="kn">from</span> <span class="nn">...core.common.serde.capnp</span> <span class="kn">import</span> <span class="n">combine_bytes</span>
+<span class="kn">from</span> <span class="nn">...core.common.serde.capnp</span> <span class="kn">import</span> <span class="n">get_capnp_schema</span>
+<span class="kn">from</span> <span class="nn">...core.common.serde.serializable</span> <span class="kn">import</span> <span class="n">serializable</span>
+<span class="kn">from</span> <span class="nn">...experimental_flags</span> <span class="kn">import</span> <span class="n">ApacheArrowCompression</span>
 <span class="kn">from</span> <span class="nn">...experimental_flags</span> <span class="kn">import</span> <span class="n">flags</span>
-<span class="kn">from</span> <span class="nn">...generate_wrapper</span> <span class="kn">import</span> <span class="n">GenerateWrapper</span>
-<span class="kn">from</span> <span class="nn">...lib.torch.tensor_util</span> <span class="kn">import</span> <span class="n">tensor_deserializer</span>
-<span class="kn">from</span> <span class="nn">...lib.torch.tensor_util</span> <span class="kn">import</span> <span class="n">tensor_serializer</span>
+<span class="kn">from</span> <span class="nn">...lib.util</span> <span class="kn">import</span> <span class="n">full_name_with_name</span>
 <span class="kn">from</span> <span class="nn">...proto.lib.numpy.array_pb2</span> <span class="kn">import</span> <span class="n">NumpyProto</span>
+<span class="kn">from</span> <span class="nn">...proto.lib.numpy.array_pb2</span> <span class="kn">import</span> <span class="n">NumpyScalar</span>
+<span class="kn">from</span> <span class="nn">..torch.tensor_util</span> <span class="kn">import</span> <span class="n">tensor_deserializer</span>
+<span class="kn">from</span> <span class="nn">..torch.tensor_util</span> <span class="kn">import</span> <span class="n">tensor_serializer</span>
 
 <span class="n">SUPPORTED_BOOL_TYPES</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">]</span>
 <span class="n">SUPPORTED_INT_TYPES</span> <span class="o">=</span> <span class="p">[</span>
@@ -208,20 +226,94 @@
 <span class="p">}</span>
 
 
-<div class="viewcode-block" id="arrow_serialize"><a class="viewcode-back" href="../../../../api_reference/syft.lib.numpy.html#syft.lib.numpy.array.arrow_serialize">[docs]</a><span class="k">def</span> <span class="nf">arrow_serialize</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<span class="c1"># TODO: move to sy.serialize interface, when protobuf for numpy is removed.</span>
+<div class="viewcode-block" id="capnp_serialize"><a class="viewcode-back" href="../../../../api_reference/syft.lib.numpy.html#syft.lib.numpy.array.capnp_serialize">[docs]</a><span class="k">def</span> <span class="nf">capnp_serialize</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">to_bytes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_DynamicStructBuilder</span><span class="p">:</span>
+    <span class="n">schema</span> <span class="o">=</span> <span class="n">get_capnp_schema</span><span class="p">(</span><span class="n">schema_file</span><span class="o">=</span><span class="s2">&quot;array.capnp&quot;</span><span class="p">)</span>
+    <span class="n">array_struct</span><span class="p">:</span> <span class="n">CapnpModule</span> <span class="o">=</span> <span class="n">schema</span><span class="o">.</span><span class="n">Array</span>  <span class="c1"># type: ignore</span>
+    <span class="n">array_msg</span> <span class="o">=</span> <span class="n">array_struct</span><span class="o">.</span><span class="n">new_message</span><span class="p">()</span>
+    <span class="n">metadata_schema</span> <span class="o">=</span> <span class="n">array_struct</span><span class="o">.</span><span class="n">TensorMetadata</span>
+    <span class="n">array_metadata</span> <span class="o">=</span> <span class="n">metadata_schema</span><span class="o">.</span><span class="n">new_message</span><span class="p">()</span>
+
+    <span class="n">obj_bytes</span><span class="p">,</span> <span class="n">obj_decompressed_size</span> <span class="o">=</span> <span class="n">arrow_serialize</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">get_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">chunk_bytes</span><span class="p">(</span><span class="n">obj_bytes</span><span class="p">,</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span> <span class="n">array_msg</span><span class="p">)</span>
+    <span class="n">array_metadata</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">array_metadata</span><span class="o">.</span><span class="n">decompressedSize</span> <span class="o">=</span> <span class="n">obj_decompressed_size</span>
+
+    <span class="n">array_msg</span><span class="o">.</span><span class="n">arrayMetadata</span> <span class="o">=</span> <span class="n">array_metadata</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">to_bytes</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">array_msg</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">array_msg</span><span class="o">.</span><span class="n">to_bytes_packed</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="capnp_deserialize"><a class="viewcode-back" href="../../../../api_reference/syft.lib.numpy.html#syft.lib.numpy.array.capnp_deserialize">[docs]</a><span class="k">def</span> <span class="nf">capnp_deserialize</span><span class="p">(</span>
+    <span class="n">msg</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">_DynamicStructBuilder</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span> <span class="n">from_bytes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="n">array_msg</span><span class="p">:</span> <span class="n">_DynamicStructBuilder</span>
+    <span class="k">if</span> <span class="n">from_bytes</span><span class="p">:</span>
+        <span class="n">schema</span> <span class="o">=</span> <span class="n">get_capnp_schema</span><span class="p">(</span><span class="n">schema_file</span><span class="o">=</span><span class="s2">&quot;array.capnp&quot;</span><span class="p">)</span>
+        <span class="n">array_struct</span><span class="p">:</span> <span class="n">CapnpModule</span> <span class="o">=</span> <span class="n">schema</span><span class="o">.</span><span class="n">Array</span>  <span class="c1"># type: ignore</span>
+        <span class="c1"># https://stackoverflow.com/questions/48458839/capnproto-maximum-filesize</span>
+        <span class="n">MAX_TRAVERSAL_LIMIT</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="mi">64</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="c1"># to pack or not to pack?</span>
+        <span class="c1"># array_msg = array_struct.from_bytes(buf, traversal_limit_in_words=2 ** 64 - 1)</span>
+        <span class="n">array_msg</span> <span class="o">=</span> <span class="n">array_struct</span><span class="o">.</span><span class="n">from_bytes_packed</span><span class="p">(</span>
+            <span class="n">msg</span><span class="p">,</span> <span class="n">traversal_limit_in_words</span><span class="o">=</span><span class="n">MAX_TRAVERSAL_LIMIT</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">array_msg</span> <span class="o">=</span> <span class="n">msg</span>
+
+    <span class="n">array_metadata</span> <span class="o">=</span> <span class="n">array_msg</span><span class="o">.</span><span class="n">arrayMetadata</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">arrow_deserialize</span><span class="p">(</span>
+        <span class="n">combine_bytes</span><span class="p">(</span><span class="n">array_msg</span><span class="o">.</span><span class="n">array</span><span class="p">),</span>
+        <span class="n">decompressed_size</span><span class="o">=</span><span class="n">array_metadata</span><span class="o">.</span><span class="n">decompressedSize</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">array_metadata</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">obj</span></div>
+
+
+<div class="viewcode-block" id="arrow_serialize"><a class="viewcode-back" href="../../../../api_reference/syft.lib.numpy.html#syft.lib.numpy.array.arrow_serialize">[docs]</a><span class="k">def</span> <span class="nf">arrow_serialize</span><span class="p">(</span>
+    <span class="n">obj</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">get_bytes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">NumpyProto</span><span class="p">]:</span>
+    <span class="n">original_dtype</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">dtype</span>
     <span class="n">apache_arrow</span> <span class="o">=</span> <span class="n">pa</span><span class="o">.</span><span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">obj</span><span class="o">=</span><span class="n">obj</span><span class="p">)</span>
     <span class="n">sink</span> <span class="o">=</span> <span class="n">pa</span><span class="o">.</span><span class="n">BufferOutputStream</span><span class="p">()</span>
     <span class="n">pa</span><span class="o">.</span><span class="n">ipc</span><span class="o">.</span><span class="n">write_tensor</span><span class="p">(</span><span class="n">apache_arrow</span><span class="p">,</span> <span class="n">sink</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">sink</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span><span class="o">.</span><span class="n">to_pybytes</span><span class="p">()</span></div>
+    <span class="n">buffer</span> <span class="o">=</span> <span class="n">sink</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">flags</span><span class="o">.</span><span class="n">APACHE_ARROW_COMPRESSION</span> <span class="ow">is</span> <span class="n">ApacheArrowCompression</span><span class="o">.</span><span class="n">NONE</span><span class="p">:</span>
+        <span class="n">numpy_bytes</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">to_pybytes</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">numpy_bytes</span> <span class="o">=</span> <span class="n">pa</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span>
+            <span class="n">buffer</span><span class="p">,</span> <span class="n">asbytes</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">codec</span><span class="o">=</span><span class="n">flags</span><span class="o">.</span><span class="n">APACHE_ARROW_COMPRESSION</span><span class="o">.</span><span class="n">value</span>
+        <span class="p">)</span>
+    <span class="n">dtype</span> <span class="o">=</span> <span class="n">original_dtype</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="k">if</span> <span class="n">get_bytes</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">numpy_bytes</span><span class="p">,</span> <span class="n">buffer</span><span class="o">.</span><span class="n">size</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">NumpyProto</span><span class="p">(</span>
+            <span class="n">arrow_data</span><span class="o">=</span><span class="n">numpy_bytes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">decompressed_size</span><span class="o">=</span><span class="n">buffer</span><span class="o">.</span><span class="n">size</span>
+        <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="arrow_deserialize"><a class="viewcode-back" href="../../../../api_reference/syft.lib.numpy.html#syft.lib.numpy.array.arrow_deserialize">[docs]</a><span class="k">def</span> <span class="nf">arrow_deserialize</span><span class="p">(</span><span class="n">buf</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="n">reader</span> <span class="o">=</span> <span class="n">pa</span><span class="o">.</span><span class="n">BufferReader</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
-    <span class="n">buf</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_buffer</span><span class="p">()</span>
+<div class="viewcode-block" id="arrow_deserialize"><a class="viewcode-back" href="../../../../api_reference/syft.lib.numpy.html#syft.lib.numpy.array.arrow_deserialize">[docs]</a><span class="k">def</span> <span class="nf">arrow_deserialize</span><span class="p">(</span><span class="n">buf</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">decompressed_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="n">original_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">flags</span><span class="o">.</span><span class="n">APACHE_ARROW_COMPRESSION</span> <span class="ow">is</span> <span class="n">ApacheArrowCompression</span><span class="o">.</span><span class="n">NONE</span><span class="p">:</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">pa</span><span class="o">.</span><span class="n">BufferReader</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
+        <span class="n">buf</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_buffer</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">buf</span> <span class="o">=</span> <span class="n">pa</span><span class="o">.</span><span class="n">decompress</span><span class="p">(</span>
+            <span class="n">buf</span><span class="p">,</span>
+            <span class="n">decompressed_size</span><span class="o">=</span><span class="n">decompressed_size</span><span class="p">,</span>
+            <span class="n">codec</span><span class="o">=</span><span class="n">flags</span><span class="o">.</span><span class="n">APACHE_ARROW_COMPRESSION</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+        <span class="p">)</span>
+
     <span class="n">result</span> <span class="o">=</span> <span class="n">pa</span><span class="o">.</span><span class="n">ipc</span><span class="o">.</span><span class="n">read_tensor</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
     <span class="n">np_array</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
     <span class="n">np_array</span><span class="o">.</span><span class="n">setflags</span><span class="p">(</span><span class="n">write</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">np_array</span></div>
+    <span class="k">return</span> <span class="n">np_array</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">original_dtype</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="protobuf_serialize"><a class="viewcode-back" href="../../../../api_reference/syft.lib.numpy.html#syft.lib.numpy.array.protobuf_serialize">[docs]</a><span class="k">def</span> <span class="nf">protobuf_serialize</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NumpyProto</span><span class="p">:</span>
@@ -234,7 +326,11 @@
         <span class="c1"># same original unsigned values on the other side</span>
         <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">DTYPE_REFACTOR</span><span class="p">[</span><span class="n">original_dtype</span><span class="p">])</span>
 
-    <span class="n">tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+    <span class="c1"># Cloning seems to cause the worker to freeze if the array is larger than around</span>
+    <span class="c1"># 800k in data and since we are serializing it immediately afterwards I don&#39;t</span>
+    <span class="c1"># think its needed anyway</span>
+    <span class="c1"># tensor = torch.from_numpy(obj).clone()</span>
+    <span class="n">tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
     <span class="n">tensor_bytes</span> <span class="o">=</span> <span class="n">tensor_serializer</span><span class="p">(</span><span class="n">tensor</span><span class="p">)</span>
     <span class="n">dtype</span> <span class="o">=</span> <span class="n">original_dtype</span><span class="o">.</span><span class="n">name</span>
     <span class="k">return</span> <span class="n">NumpyProto</span><span class="p">(</span><span class="n">proto_data</span><span class="o">=</span><span class="n">tensor_bytes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span></div>
@@ -251,25 +347,85 @@
 
 <div class="viewcode-block" id="serialize_numpy_array"><a class="viewcode-back" href="../../../../api_reference/syft.lib.numpy.html#syft.lib.numpy.array.serialize_numpy_array">[docs]</a><span class="k">def</span> <span class="nf">serialize_numpy_array</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NumpyProto</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">flags</span><span class="o">.</span><span class="n">APACHE_ARROW_TENSOR_SERDE</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">NumpyProto</span><span class="p">(</span><span class="n">arrow_data</span><span class="o">=</span><span class="n">arrow_serialize</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">arrow_serialize</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">protobuf_serialize</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="deserialize_numpy_array"><a class="viewcode-back" href="../../../../api_reference/syft.lib.numpy.html#syft.lib.numpy.array.deserialize_numpy_array">[docs]</a><span class="k">def</span> <span class="nf">deserialize_numpy_array</span><span class="p">(</span><span class="n">proto</span><span class="p">:</span> <span class="n">NumpyProto</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">proto</span><span class="o">.</span><span class="n">HasField</span><span class="p">(</span><span class="s2">&quot;arrow_data&quot;</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">arrow_deserialize</span><span class="p">(</span><span class="n">proto</span><span class="o">.</span><span class="n">arrow_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">arrow_deserialize</span><span class="p">(</span>
+            <span class="n">buf</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">arrow_data</span><span class="p">,</span>
+            <span class="n">decompressed_size</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">decompressed_size</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">protobuf_deserialize</span><span class="p">(</span><span class="n">proto</span><span class="p">)</span></div>
 
 
-<span class="n">GenerateWrapper</span><span class="p">(</span>
+<span class="n">serializable</span><span class="p">(</span><span class="n">generate_wrapper</span><span class="o">=</span><span class="kc">True</span><span class="p">)(</span>
     <span class="n">wrapped_type</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="n">import_path</span><span class="o">=</span><span class="s2">&quot;numpy.ndarray&quot;</span><span class="p">,</span>
     <span class="n">protobuf_scheme</span><span class="o">=</span><span class="n">NumpyProto</span><span class="p">,</span>
     <span class="n">type_object2proto</span><span class="o">=</span><span class="n">serialize_numpy_array</span><span class="p">,</span>
     <span class="n">type_proto2object</span><span class="o">=</span><span class="n">deserialize_numpy_array</span><span class="p">,</span>
 <span class="p">)</span>
+
+
+<span class="n">numpy_scalar_types</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">uint16</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">half</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">single</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="scalar_protobuf_serialize"><a class="viewcode-back" href="../../../../api_reference/syft.lib.numpy.html#syft.lib.numpy.array.scalar_protobuf_serialize">[docs]</a><span class="k">def</span> <span class="nf">scalar_protobuf_serialize</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NumpyScalar</span><span class="p">:</span>
+    <span class="n">original_dtype</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">original_dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">numpy_scalar_types</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">original_dtype</span><span class="si">}</span><span class="s2"> is not supported&quot;</span><span class="p">)</span>
+
+    <span class="n">scalar</span> <span class="o">=</span> <span class="n">NumpyScalar</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">):</span>
+        <span class="n">scalar</span><span class="o">.</span><span class="n">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">):</span>
+        <span class="n">scalar</span><span class="o">.</span><span class="n">float</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">):</span>
+        <span class="n">scalar</span><span class="o">.</span><span class="n">int</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">original_dtype</span><span class="si">}</span><span class="s2"> is not supported&quot;</span><span class="p">)</span>
+
+    <span class="n">scalar</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">original_dtype</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="n">scalar</span><span class="o">.</span><span class="n">obj_type</span> <span class="o">=</span> <span class="n">full_name_with_name</span><span class="p">(</span><span class="n">klass</span><span class="o">=</span><span class="n">obj</span><span class="o">.</span><span class="n">_sy_serializable_wrapper_type</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+    <span class="k">return</span> <span class="n">scalar</span></div>
+
+
+<div class="viewcode-block" id="scalar_protobuf_deserialize"><a class="viewcode-back" href="../../../../api_reference/syft.lib.numpy.html#syft.lib.numpy.array.scalar_protobuf_deserialize">[docs]</a><span class="k">def</span> <span class="nf">scalar_protobuf_deserialize</span><span class="p">(</span><span class="n">proto</span><span class="p">:</span> <span class="n">NumpyScalar</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">:</span>
+    <span class="n">dtype</span> <span class="o">=</span> <span class="n">proto</span><span class="o">.</span><span class="n">dtype</span>
+    <span class="k">if</span> <span class="n">proto</span><span class="o">.</span><span class="n">HasField</span><span class="p">(</span><span class="s2">&quot;int&quot;</span><span class="p">):</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="n">proto</span><span class="o">.</span><span class="n">int</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="n">proto</span><span class="o">.</span><span class="n">float</span>
+
+    <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">np</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)(</span><span class="n">raw</span><span class="p">)</span></div>
+
+
+<span class="k">for</span> <span class="n">np_scalar_type</span> <span class="ow">in</span> <span class="n">numpy_scalar_types</span><span class="p">:</span>
+    <span class="n">serializable</span><span class="p">(</span><span class="n">generate_wrapper</span><span class="o">=</span><span class="kc">True</span><span class="p">)(</span>
+        <span class="n">wrapped_type</span><span class="o">=</span><span class="n">np_scalar_type</span><span class="p">,</span>
+        <span class="n">import_path</span><span class="o">=</span><span class="s2">&quot;numpy.&quot;</span> <span class="o">+</span> <span class="n">np_scalar_type</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+        <span class="n">protobuf_scheme</span><span class="o">=</span><span class="n">NumpyScalar</span><span class="p">,</span>
+        <span class="n">type_object2proto</span><span class="o">=</span><span class="n">scalar_protobuf_serialize</span><span class="p">,</span>
+        <span class="n">type_proto2object</span><span class="o">=</span><span class="n">scalar_protobuf_deserialize</span><span class="p">,</span>
+    <span class="p">)</span>
 </pre></div>
 
               </div>

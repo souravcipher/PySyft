@@ -1,4 +1,4 @@
-syft.core.tensor.ancestors
+﻿syft.core.tensor.ancestors
 ==========================
 
 .. automodule:: syft.core.tensor.ancestors
@@ -13,7 +13,9 @@ syft.core.tensor.ancestors
 
    .. autosummary::
    
-      entity_creation_wizard
+      check_data_subjects
+      check_min_max_vals
+      data_subject_creation_wizard
    
    
 
@@ -23,7 +25,6 @@ syft.core.tensor.ancestors
 
    .. autosummary::
    
-      AutogradTensorAncestor
       PhiTensorAncestor
    
    

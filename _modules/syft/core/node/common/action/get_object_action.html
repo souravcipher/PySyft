@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -176,9 +182,7 @@
 <span class="kn">from</span> <span class="nn">google.protobuf.reflection</span> <span class="kn">import</span> <span class="n">GeneratedProtocolMessageType</span>
 <span class="kn">from</span> <span class="nn">nacl.signing</span> <span class="kn">import</span> <span class="n">VerifyKey</span>
 
-<span class="c1"># syft relative</span>
-<span class="kn">from</span> <span class="nn">.....</span> <span class="kn">import</span> <span class="n">serialize</span>
-<span class="kn">from</span> <span class="nn">.....logger</span> <span class="kn">import</span> <span class="n">critical</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">.....logger</span> <span class="kn">import</span> <span class="n">debug</span>
 <span class="kn">from</span> <span class="nn">.....logger</span> <span class="kn">import</span> <span class="n">traceback_and_raise</span>
 <span class="kn">from</span> <span class="nn">.....logger</span> <span class="kn">import</span> <span class="n">warning</span>
@@ -191,20 +195,21 @@
 <span class="kn">from</span> <span class="nn">.....util</span> <span class="kn">import</span> <span class="n">get_fully_qualified_name</span>
 <span class="kn">from</span> <span class="nn">.....util</span> <span class="kn">import</span> <span class="n">validate_type</span>
 <span class="kn">from</span> <span class="nn">....common.message</span> <span class="kn">import</span> <span class="n">ImmediateSyftMessageWithoutReply</span>
-<span class="kn">from</span> <span class="nn">....common.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span>
-<span class="kn">from</span> <span class="nn">....common.serde.serializable</span> <span class="kn">import</span> <span class="n">bind_protobuf</span>
+<span class="kn">from</span> <span class="nn">....common.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span> <span class="k">as</span> <span class="n">deserialize</span>
+<span class="kn">from</span> <span class="nn">....common.serde.serializable</span> <span class="kn">import</span> <span class="n">serializable</span>
+<span class="kn">from</span> <span class="nn">....common.serde.serialize</span> <span class="kn">import</span> <span class="n">_serialize</span> <span class="k">as</span> <span class="n">serialize</span>
 <span class="kn">from</span> <span class="nn">....common.uid</span> <span class="kn">import</span> <span class="n">UID</span>
 <span class="kn">from</span> <span class="nn">....io.address</span> <span class="kn">import</span> <span class="n">Address</span>
 <span class="kn">from</span> <span class="nn">....store.storeable_object</span> <span class="kn">import</span> <span class="n">StorableObject</span>
 <span class="kn">from</span> <span class="nn">...abstract.node</span> <span class="kn">import</span> <span class="n">AbstractNode</span>
-<span class="kn">from</span> <span class="nn">..service.auth</span> <span class="kn">import</span> <span class="n">AuthorizationException</span>
+<span class="kn">from</span> <span class="nn">..node_service.auth</span> <span class="kn">import</span> <span class="n">AuthorizationException</span>
 <span class="kn">from</span> <span class="nn">.common</span> <span class="kn">import</span> <span class="n">ImmediateActionWithReply</span>
 
 
-<div class="viewcode-block" id="GetObjectResponseMessage"><a class="viewcode-back" href="../../../../../../api_reference/syft.core.node.common.action.get_object_action.html#syft.core.node.common.action.get_object_action.GetObjectResponseMessage">[docs]</a><span class="nd">@bind_protobuf</span>
+<div class="viewcode-block" id="GetObjectResponseMessage"><a class="viewcode-back" href="../../../../../../api_reference/syft.core.node.common.action.get_object_action.html#syft.core.node.common.action.get_object_action.GetObjectResponseMessage">[docs]</a><span class="nd">@serializable</span><span class="p">()</span>
 <span class="k">class</span> <span class="nc">GetObjectResponseMessage</span><span class="p">(</span><span class="n">ImmediateSyftMessageWithoutReply</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    GetObjectResponseMessages are the type of messages that are sent in reponse to a</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    GetObjectResponseMessages are the type of messages that are sent in response to a</span>
 <span class="sd">    :class:`GetObjectAction`. They contain the object that was asked for.</span>
 
 <span class="sd">    Attributes:</span>
@@ -218,7 +223,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span>
 
     <span class="k">def</span> <span class="nf">_object2proto</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GetObjectResponseMessage_PB</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Returns a protobuf serialization of self.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a protobuf serialization of self.</span>
 
 <span class="sd">        As a requirement of all objects which inherit from Serializable,</span>
 <span class="sd">        this method transforms the current object into the corresponding</span>
@@ -242,7 +247,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="p">:</span> <span class="n">GetObjectResponseMessage_PB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;GetObjectResponseMessage&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Creates a ObjectWithID from a protobuf</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a ObjectWithID from a protobuf</span>
 
 <span class="sd">        As a requirement of all objects which inherit from Serializable,</span>
 <span class="sd">        this method transforms a protobuf object into an instance of this class.</span>
@@ -255,9 +260,9 @@
 <span class="sd">            if you wish to deserialize an object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">GetObjectResponseMessage</span><span class="p">(</span>
-            <span class="n">obj</span><span class="o">=</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">obj</span><span class="p">),</span>
-            <span class="n">msg_id</span><span class="o">=</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">msg_id</span><span class="p">),</span>
-            <span class="n">address</span><span class="o">=</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">address</span><span class="p">),</span>
+            <span class="n">obj</span><span class="o">=</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">obj</span><span class="p">),</span>
+            <span class="n">msg_id</span><span class="o">=</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">msg_id</span><span class="p">),</span>
+            <span class="n">address</span><span class="o">=</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">address</span><span class="p">),</span>
         <span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -281,7 +286,7 @@
 
 <div class="viewcode-block" id="GetObjectResponseMessage.get_protobuf_schema"><a class="viewcode-back" href="../../../../../../api_reference/syft.core.node.common.action.get_object_action.html#syft.core.node.common.action.get_object_action.GetObjectResponseMessage.get_protobuf_schema">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_protobuf_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">GeneratedProtocolMessageType</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
 
 <span class="sd">        As a part of serialization and deserialization, we need the ability to</span>
 <span class="sd">        lookup the protobuf object type directly from the object type. This</span>
@@ -300,9 +305,9 @@
         <span class="k">return</span> <span class="n">GetObjectResponseMessage_PB</span></div></div>
 
 
-<div class="viewcode-block" id="GetObjectAction"><a class="viewcode-back" href="../../../../../../api_reference/syft.core.node.common.action.get_object_action.html#syft.core.node.common.action.get_object_action.GetObjectAction">[docs]</a><span class="nd">@bind_protobuf</span>
+<div class="viewcode-block" id="GetObjectAction"><a class="viewcode-back" href="../../../../../../api_reference/syft.core.node.common.action.get_object_action.html#syft.core.node.common.action.get_object_action.GetObjectAction">[docs]</a><span class="nd">@serializable</span><span class="p">()</span>
 <span class="k">class</span> <span class="nc">GetObjectAction</span><span class="p">(</span><span class="n">ImmediateActionWithReply</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This kind of action is used when a Node wants to get an object located on another Node.</span>
 
 <span class="sd">    The Node receiving this action first check that the asker does have the permission to</span>
@@ -321,6 +326,7 @@
         <span class="n">msg_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UID</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">delete_obj</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">):</span>
+        <span class="c1"># TODO: remove delete_obj flag if everthing works fine.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">id_at_location</span> <span class="o">=</span> <span class="n">id_at_location</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delete_obj</span> <span class="o">=</span> <span class="n">delete_obj</span>
 
@@ -332,7 +338,7 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImmediateSyftMessageWithoutReply</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">storable_object</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">store</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">]</span>
+                <span class="n">storable_object</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">,</span> <span class="n">proxy_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="n">log</span> <span class="o">=</span> <span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;Unable to Get Object with ID </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_at_location</span><span class="si">}</span><span class="s2"> from store. &quot;</span>
@@ -347,30 +353,19 @@
                 <span class="ow">and</span> <span class="n">verify_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">storable_object</span><span class="o">.</span><span class="n">read_permissions</span>
             <span class="p">):</span>
                 <span class="n">log</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;You do not have permission to .get() Object with ID: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_at_location</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;You do not have permission to .get() Object with ID: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_at_location</span><span class="si">}</span><span class="s2"> on node </span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> &quot;</span>
                     <span class="o">+</span> <span class="s2">&quot;Please submit a request.&quot;</span>
                 <span class="p">)</span>
                 <span class="n">traceback_and_raise</span><span class="p">(</span><span class="n">AuthorizationException</span><span class="p">(</span><span class="n">log</span><span class="p">))</span>
 
-            <span class="n">obj</span> <span class="o">=</span> <span class="n">validate_type</span><span class="p">(</span><span class="n">storable_object</span><span class="o">.</span><span class="n">clean_copy</span><span class="p">(),</span> <span class="n">StorableObject</span><span class="p">)</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">validate_type</span><span class="p">(</span>
+                <span class="n">storable_object</span><span class="o">.</span><span class="n">clean_copy</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">settings</span><span class="p">),</span> <span class="n">StorableObject</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_proxy</span><span class="p">:</span>
+                <span class="n">obj</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">generate_presigned_url</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span> <span class="n">public_url</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
             <span class="n">msg</span> <span class="o">=</span> <span class="n">GetObjectResponseMessage</span><span class="p">(</span><span class="n">obj</span><span class="o">=</span><span class="n">obj</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reply_to</span><span class="p">,</span> <span class="n">msg_id</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">delete_obj</span><span class="p">:</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="c1"># TODO: send EventualActionWithoutReply to delete the object at the node&#39;s</span>
-                    <span class="c1"># convenience instead of definitely having to delete it now</span>
-                    <span class="n">debug</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Calling delete on Object with ID </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_at_location</span><span class="si">}</span><span class="s2"> in store.&quot;</span>
-                    <span class="p">)</span>
-                    <span class="n">node</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                    <span class="n">log</span> <span class="o">=</span> <span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;&gt; GetObjectAction delete exception </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_at_location</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
-                    <span class="p">)</span>
-                    <span class="n">critical</span><span class="p">(</span><span class="n">log</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Copying Object with ID </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_at_location</span><span class="si">}</span><span class="s2"> in store.&quot;</span><span class="p">)</span>
 
             <span class="n">debug</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Returning Object with ID: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_at_location</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">storable_object</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
@@ -378,13 +373,14 @@
             <span class="k">return</span> <span class="n">msg</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">traceback_and_raise</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unable to execute action with </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pprint</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;GetObjectAction(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_at_location</span><span class="si">}</span><span class="s2">)&quot;</span>
 
     <span class="k">def</span> <span class="nf">_object2proto</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GetObjectAction_PB</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Returns a protobuf serialization of self.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a protobuf serialization of self.</span>
 
 <span class="sd">        As a requirement of all objects which inherit from Serializable,</span>
 <span class="sd">        this method transforms the current object into the corresponding</span>
@@ -408,7 +404,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="p">:</span> <span class="n">GetObjectAction_PB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;GetObjectAction&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Creates a ObjectWithID from a protobuf</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a ObjectWithID from a protobuf</span>
 
 <span class="sd">        As a requirement of all objects which inherit from Serializable,</span>
 <span class="sd">        this method transforms a protobuf object into an instance of this class.</span>
@@ -422,16 +418,16 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="n">GetObjectAction</span><span class="p">(</span>
-            <span class="n">id_at_location</span><span class="o">=</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">),</span>
-            <span class="n">msg_id</span><span class="o">=</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">msg_id</span><span class="p">),</span>
-            <span class="n">address</span><span class="o">=</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">address</span><span class="p">),</span>
-            <span class="n">reply_to</span><span class="o">=</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">reply_to</span><span class="p">),</span>
+            <span class="n">id_at_location</span><span class="o">=</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">),</span>
+            <span class="n">msg_id</span><span class="o">=</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">msg_id</span><span class="p">),</span>
+            <span class="n">address</span><span class="o">=</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">address</span><span class="p">),</span>
+            <span class="n">reply_to</span><span class="o">=</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">reply_to</span><span class="p">),</span>
             <span class="n">delete_obj</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">delete_obj</span><span class="p">,</span>
         <span class="p">)</span>
 
 <div class="viewcode-block" id="GetObjectAction.get_protobuf_schema"><a class="viewcode-back" href="../../../../../../api_reference/syft.core.node.common.action.get_object_action.html#syft.core.node.common.action.get_object_action.GetObjectAction.get_protobuf_schema">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_protobuf_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">GeneratedProtocolMessageType</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
 
 <span class="sd">        As a part of serialization and deserialization, we need the ability to</span>
 <span class="sd">        lookup the protobuf object type directly from the object type. This</span>

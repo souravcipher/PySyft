@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -176,26 +182,28 @@
 
 <span class="c1"># third party</span>
 <span class="kn">from</span> <span class="nn">google.protobuf.reflection</span> <span class="kn">import</span> <span class="n">GeneratedProtocolMessageType</span>
+<span class="kn">from</span> <span class="nn">pydantic</span> <span class="kn">import</span> <span class="n">BaseSettings</span>
 
-<span class="c1"># syft absolute</span>
-<span class="kn">import</span> <span class="nn">syft</span> <span class="k">as</span> <span class="nn">sy</span>
-
-<span class="c1"># syft relative</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">...logger</span> <span class="kn">import</span> <span class="n">traceback_and_raise</span>
 <span class="kn">from</span> <span class="nn">...proto.core.store.store_object_pb2</span> <span class="kn">import</span> <span class="n">StorableObject</span> <span class="k">as</span> <span class="n">StorableObject_PB</span>
 <span class="kn">from</span> <span class="nn">...util</span> <span class="kn">import</span> <span class="n">get_fully_qualified_name</span>
 <span class="kn">from</span> <span class="nn">...util</span> <span class="kn">import</span> <span class="n">index_syft_by_module_name</span>
 <span class="kn">from</span> <span class="nn">...util</span> <span class="kn">import</span> <span class="n">key_emoji</span>
+<span class="kn">from</span> <span class="nn">..common.serde.deserialize</span> <span class="kn">import</span> <span class="n">CapnpMagicBytesNotFound</span>
 <span class="kn">from</span> <span class="nn">..common.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span>
-<span class="kn">from</span> <span class="nn">..common.serde.serializable</span> <span class="kn">import</span> <span class="n">Serializable</span>
-<span class="kn">from</span> <span class="nn">..common.serde.serializable</span> <span class="kn">import</span> <span class="n">bind_protobuf</span>
+<span class="kn">from</span> <span class="nn">..common.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span> <span class="k">as</span> <span class="n">deserialize</span>
+<span class="kn">from</span> <span class="nn">..common.serde.deserialize</span> <span class="kn">import</span> <span class="n">deserialize_capnp</span>
+<span class="kn">from</span> <span class="nn">..common.serde.serializable</span> <span class="kn">import</span> <span class="n">serializable</span>
+<span class="kn">from</span> <span class="nn">..common.serde.serialize</span> <span class="kn">import</span> <span class="n">_serialize</span>
 <span class="kn">from</span> <span class="nn">..common.storeable_object</span> <span class="kn">import</span> <span class="n">AbstractStorableObject</span>
 <span class="kn">from</span> <span class="nn">..common.uid</span> <span class="kn">import</span> <span class="n">UID</span>
+<span class="kn">from</span> <span class="nn">.proxy_dataset</span> <span class="kn">import</span> <span class="n">ProxyDataset</span>
 
 
-<div class="viewcode-block" id="StorableObject"><a class="viewcode-back" href="../../../../api_reference/syft.core.store.storeable_object.html#syft.core.store.storeable_object.StorableObject">[docs]</a><span class="nd">@bind_protobuf</span>
+<div class="viewcode-block" id="StorableObject"><a class="viewcode-back" href="../../../../api_reference/syft.core.store.storeable_object.html#syft.core.store.storeable_object.StorableObject">[docs]</a><span class="nd">@serializable</span><span class="p">()</span>
 <span class="k">class</span> <span class="nc">StorableObject</span><span class="p">(</span><span class="n">AbstractStorableObject</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    StorableObject is a wrapper over some Serializable objects, which we want to keep in an</span>
 <span class="sd">    ObjectStore. The Serializable objects that we want to store have to be backed up in syft-proto</span>
 <span class="sd">    in the StorableObject protobuffer, where you can find more details on how to add new types to be</span>
@@ -230,6 +238,7 @@
         <span class="n">tags</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">read_permissions</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">search_permissions</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">write_permissions</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="nb">id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
@@ -245,6 +254,7 @@
         <span class="c1"># the value is the original request_id to allow lookup later</span>
         <span class="c1"># who are allowed to know that the tensor exists (via search or other means)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">search_permissions</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">search_permissions</span> <span class="k">if</span> <span class="n">search_permissions</span> <span class="k">else</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_permissions</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">write_permissions</span> <span class="k">if</span> <span class="n">write_permissions</span> <span class="k">else</span> <span class="p">{}</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">object_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -275,6 +285,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">value</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">ProxyDataset</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">tags</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tags</span>
 
@@ -291,17 +305,29 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_description</span> <span class="o">=</span> <span class="n">description</span> <span class="k">if</span> <span class="n">description</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">_object2proto</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StorableObject_PB</span><span class="p">:</span>
+        <span class="c1"># relative</span>
+        <span class="kn">from</span> <span class="nn">...lib.python.bytes</span> <span class="kn">import</span> <span class="n">Bytes</span>
+        <span class="kn">from</span> <span class="nn">...lib.python.dict</span> <span class="kn">import</span> <span class="n">Dict</span>
+
         <span class="n">proto</span> <span class="o">=</span> <span class="n">StorableObject_PB</span><span class="p">()</span>
 
         <span class="c1"># Step 1: Serialize the id to protobuf and copy into protobuf</span>
-        <span class="nb">id</span> <span class="o">=</span> <span class="n">sy</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="nb">id</span> <span class="o">=</span> <span class="n">_serialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
         <span class="n">proto</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">CopyFrom</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
 
         <span class="c1"># Step 2: Save the type of wrapper to use to deserialize</span>
         <span class="n">proto</span><span class="o">.</span><span class="n">data_type</span> <span class="o">=</span> <span class="n">get_fully_qualified_name</span><span class="p">(</span><span class="n">obj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span>
 
         <span class="c1"># Step 3: Serialize data to protobuf and pack into proto</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">_object2proto</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="s2">&quot;_object2bytes&quot;</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">Bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">_object2bytes</span><span class="p">())</span><span class="o">.</span><span class="n">_object2proto</span><span class="p">()</span>
+            <span class="n">proto</span><span class="o">.</span><span class="n">data_type</span> <span class="o">=</span> <span class="n">get_fully_qualified_name</span><span class="p">(</span><span class="n">obj</span><span class="o">=</span><span class="n">Bytes</span><span class="p">())</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="s2">&quot;_object2proto&quot;</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">_object2proto</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># @Tudor this needs fixing during the serde refactor</span>
+            <span class="c1"># we should probably just support the native type names as lookups for serde</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">_serialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">to_proto</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="n">proto</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Pack</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
@@ -318,22 +344,32 @@
 
         <span class="c1"># Step 6: save read permissions</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_permissions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">permission_data</span> <span class="o">=</span> <span class="n">sy</span><span class="o">.</span><span class="n">lib</span><span class="o">.</span><span class="n">python</span><span class="o">.</span><span class="n">Dict</span><span class="p">()</span>
+            <span class="n">permission_data</span> <span class="o">=</span> <span class="n">Dict</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_permissions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">permission_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
-            <span class="n">proto</span><span class="o">.</span><span class="n">read_permissions</span> <span class="o">=</span> <span class="n">sy</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="n">permission_data</span><span class="p">,</span> <span class="n">to_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">proto</span><span class="o">.</span><span class="n">read_permissions</span> <span class="o">=</span> <span class="n">_serialize</span><span class="p">(</span><span class="n">permission_data</span><span class="p">,</span> <span class="n">to_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="c1"># Step 7: save search permissions</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">search_permissions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">permission_data</span> <span class="o">=</span> <span class="n">sy</span><span class="o">.</span><span class="n">lib</span><span class="o">.</span><span class="n">python</span><span class="o">.</span><span class="n">Dict</span><span class="p">()</span>
+            <span class="n">permission_data</span> <span class="o">=</span> <span class="n">Dict</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_permissions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">permission_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
-            <span class="n">proto</span><span class="o">.</span><span class="n">search_permissions</span> <span class="o">=</span> <span class="n">sy</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="n">permission_data</span><span class="p">,</span> <span class="n">to_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">proto</span><span class="o">.</span><span class="n">search_permissions</span> <span class="o">=</span> <span class="n">_serialize</span><span class="p">(</span><span class="n">permission_data</span><span class="p">,</span> <span class="n">to_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Step 8: save write permissions</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">write_permissions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">permission_data</span> <span class="o">=</span> <span class="n">Dict</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_permissions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">permission_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+            <span class="n">proto</span><span class="o">.</span><span class="n">write_permissions</span> <span class="o">=</span> <span class="n">_serialize</span><span class="p">(</span><span class="n">permission_data</span><span class="p">,</span> <span class="n">to_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">proto</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="p">:</span> <span class="n">StorableObject_PB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Serializable</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="p">:</span> <span class="n">StorableObject_PB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;StorableObject&quot;</span><span class="p">:</span>
+        <span class="c1"># relative</span>
+        <span class="kn">from</span> <span class="nn">...lib.python.bytes</span> <span class="kn">import</span> <span class="n">Bytes</span>
+
         <span class="c1"># Step 1: deserialize the ID</span>
         <span class="nb">id</span> <span class="o">=</span> <span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
 
@@ -355,6 +391,14 @@
                 <span class="n">proto</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Unpack</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">data_type</span><span class="o">.</span><span class="n">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
 
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">(</span><span class="n">Bytes</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">deserialize_capnp</span><span class="p">(</span><span class="n">buf</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">CapnpMagicBytesNotFound</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">from_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">traceback_and_raise</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to deserialize Bytes with capnp. </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
         <span class="c1"># Step 5: get the description from proto</span>
         <span class="n">description</span> <span class="o">=</span> <span class="n">proto</span><span class="o">.</span><span class="n">description</span> <span class="k">if</span> <span class="n">proto</span><span class="o">.</span><span class="n">description</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
 
@@ -375,6 +419,13 @@
                 <span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">search_permissions</span><span class="p">,</span> <span class="n">from_bytes</span><span class="o">=</span><span class="kc">True</span>
             <span class="p">)</span>
 
+        <span class="c1"># Step 9: get the write permissions</span>
+        <span class="n">write_permissions</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">proto</span><span class="o">.</span><span class="n">write_permissions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">proto</span><span class="o">.</span><span class="n">write_permissions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">write_permissions</span> <span class="o">=</span> <span class="n">_deserialize</span><span class="p">(</span>
+                <span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">write_permissions</span><span class="p">,</span> <span class="n">from_bytes</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+
         <span class="n">result</span> <span class="o">=</span> <span class="n">StorableObject</span><span class="p">(</span>
             <span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">,</span>
             <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
@@ -382,13 +433,14 @@
             <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span>
             <span class="n">read_permissions</span><span class="o">=</span><span class="n">read_permissions</span><span class="p">,</span>
             <span class="n">search_permissions</span><span class="o">=</span><span class="n">search_permissions</span><span class="p">,</span>
+            <span class="n">write_permissions</span><span class="o">=</span><span class="n">write_permissions</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">result</span>
 
 <div class="viewcode-block" id="StorableObject.get_protobuf_schema"><a class="viewcode-back" href="../../../../api_reference/syft.core.store.storeable_object.html#syft.core.store.storeable_object.StorableObject.get_protobuf_schema">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_protobuf_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">GeneratedProtocolMessageType</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
 
 <span class="sd">        As a part of serialization and deserialization, we need the ability to</span>
 <span class="sd">        lookup the protobuf object type directly from the object type. This</span>
@@ -432,13 +484,18 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_permissions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">output</span> <span class="o">+=</span> <span class="p">(</span>
                 <span class="s2">&quot; can_read: &quot;</span>
-                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="p">[</span><span class="n">key_emoji</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_permissions</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="p">[</span><span class="n">key_emoji</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">key</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">read_permissions</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">search_permissions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">output</span> <span class="o">+=</span> <span class="p">(</span>
                 <span class="s2">&quot; can_search: &quot;</span>
-                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="p">[</span><span class="n">key_emoji</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_permissions</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="p">[</span><span class="n">key_emoji</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">key</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">search_permissions</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">write_permissions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">+=</span> <span class="p">(</span>
+                <span class="s2">&quot; can_write: &quot;</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="p">[</span><span class="n">key_emoji</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">key</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">write_permissions</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">)</span>
 
         <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;)&quot;</span>
@@ -448,8 +505,8 @@
     <span class="k">def</span> <span class="nf">class_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
 
-<div class="viewcode-block" id="StorableObject.clean_copy"><a class="viewcode-back" href="../../../../api_reference/syft.core.store.storeable_object.html#syft.core.store.storeable_object.StorableObject.clean_copy">[docs]</a>    <span class="k">def</span> <span class="nf">clean_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;StorableObject&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="StorableObject.clean_copy"><a class="viewcode-back" href="../../../../api_reference/syft.core.store.storeable_object.html#syft.core.store.storeable_object.StorableObject.clean_copy">[docs]</a>    <span class="k">def</span> <span class="nf">clean_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">:</span> <span class="n">BaseSettings</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;StorableObject&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This method return a copy of self, but clean up the search_permissions and</span>
 <span class="sd">        read_permissions attributes.</span>
 <span class="sd">        &quot;&quot;&quot;</span>

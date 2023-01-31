@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -181,28 +187,31 @@
 <span class="kn">from</span> <span class="nn">google.protobuf.reflection</span> <span class="kn">import</span> <span class="n">GeneratedProtocolMessageType</span>
 <span class="kn">from</span> <span class="nn">nacl.signing</span> <span class="kn">import</span> <span class="n">VerifyKey</span>
 
-<span class="c1"># syft relative</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">.....</span> <span class="kn">import</span> <span class="n">lib</span>
-<span class="kn">from</span> <span class="nn">.....</span> <span class="kn">import</span> <span class="n">serialize</span>
 <span class="kn">from</span> <span class="nn">.....logger</span> <span class="kn">import</span> <span class="n">traceback_and_raise</span>
 <span class="kn">from</span> <span class="nn">.....proto.core.node.common.action.run_function_or_constructor_pb2</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">RunFunctionOrConstructorAction</span> <span class="k">as</span> <span class="n">RunFunctionOrConstructorAction_PB</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.....util</span> <span class="kn">import</span> <span class="n">inherit_tags</span>
-<span class="kn">from</span> <span class="nn">....common.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span>
-<span class="kn">from</span> <span class="nn">....common.serde.serializable</span> <span class="kn">import</span> <span class="n">bind_protobuf</span>
+<span class="kn">from</span> <span class="nn">....common.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span> <span class="k">as</span> <span class="n">deserialize</span>
+<span class="kn">from</span> <span class="nn">....common.serde.serializable</span> <span class="kn">import</span> <span class="n">serializable</span>
+<span class="kn">from</span> <span class="nn">....common.serde.serialize</span> <span class="kn">import</span> <span class="n">_serialize</span> <span class="k">as</span> <span class="n">serialize</span>
 <span class="kn">from</span> <span class="nn">....common.uid</span> <span class="kn">import</span> <span class="n">UID</span>
 <span class="kn">from</span> <span class="nn">....io.address</span> <span class="kn">import</span> <span class="n">Address</span>
 <span class="kn">from</span> <span class="nn">....pointer.pointer</span> <span class="kn">import</span> <span class="n">Pointer</span>
 <span class="kn">from</span> <span class="nn">....store.storeable_object</span> <span class="kn">import</span> <span class="n">StorableObject</span>
 <span class="kn">from</span> <span class="nn">...abstract.node</span> <span class="kn">import</span> <span class="n">AbstractNode</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">check_send_to_blob_storage</span>
 <span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">listify</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">upload_result_to_s3</span>
 <span class="kn">from</span> <span class="nn">.common</span> <span class="kn">import</span> <span class="n">ImmediateActionWithoutReply</span>
+<span class="kn">from</span> <span class="nn">.greenlets_switch</span> <span class="kn">import</span> <span class="n">retrieve_object</span>
 
 
-<div class="viewcode-block" id="RunFunctionOrConstructorAction"><a class="viewcode-back" href="../../../../../../api_reference/syft.core.node.common.action.function_or_constructor_action.html#syft.core.node.common.action.function_or_constructor_action.RunFunctionOrConstructorAction">[docs]</a><span class="nd">@bind_protobuf</span>
+<div class="viewcode-block" id="RunFunctionOrConstructorAction"><a class="viewcode-back" href="../../../../../../api_reference/syft.core.node.common.action.function_or_constructor_action.html#syft.core.node.common.action.function_or_constructor_action.RunFunctionOrConstructorAction">[docs]</a><span class="nd">@serializable</span><span class="p">()</span>
 <span class="k">class</span> <span class="nc">RunFunctionOrConstructorAction</span><span class="p">(</span><span class="n">ImmediateActionWithoutReply</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    When executing a RunFunctionOrConstructorAction, a :class:`Node` will run</span>
 <span class="sd">    a function defined by the action&#39;s path attribute and keep the returned value</span>
 <span class="sd">    in its store.</span>
@@ -234,9 +243,10 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">intersect_keys</span><span class="p">(</span>
-        <span class="n">left</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="n">VerifyKey</span><span class="p">,</span> <span class="n">UID</span><span class="p">],</span> <span class="kc">None</span><span class="p">],</span> <span class="n">right</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">VerifyKey</span><span class="p">,</span> <span class="n">UID</span><span class="p">]</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="n">VerifyKey</span><span class="p">,</span> <span class="n">UID</span><span class="p">]:</span>
-        <span class="c1"># FIXME duplicated in run_class_method_action.py</span>
+        <span class="n">left</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="n">VerifyKey</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UID</span><span class="p">]],</span> <span class="kc">None</span><span class="p">],</span>
+        <span class="n">right</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">VerifyKey</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UID</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="n">VerifyKey</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UID</span><span class="p">]]:</span>
+        <span class="c1"># TODO: duplicated in run_class_method_action.py</span>
         <span class="c1"># get the intersection of the dict keys, the value is the request_id</span>
         <span class="c1"># if the request_id is different for some reason we still want to keep it,</span>
         <span class="c1"># so only intersect the keys and then copy those over from the main dict</span>
@@ -249,7 +259,14 @@
 
     <span class="k">def</span> <span class="nf">execute_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">AbstractNode</span><span class="p">,</span> <span class="n">verify_key</span><span class="p">:</span> <span class="n">VerifyKey</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">method</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">lib_ast</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
-        <span class="n">result_read_permissions</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="n">VerifyKey</span><span class="p">,</span> <span class="n">UID</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># If if there&#39;s another object with the same ID.</span>
+        <span class="n">node</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">check_collision</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">)</span>
+
+        <span class="n">result_read_permissions</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="n">VerifyKey</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UID</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">result_write_permissions</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="n">VerifyKey</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UID</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">verify_key</span><span class="p">:</span> <span class="kc">None</span>
+        <span class="p">}</span>
 
         <span class="n">resolved_args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
         <span class="n">tag_args</span> <span class="o">=</span> <span class="p">[]</span>
@@ -261,11 +278,11 @@
                         <span class="sa">f</span><span class="s2">&quot;Got </span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2"> of type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
                     <span class="p">)</span>
                 <span class="p">)</span>
-
-            <span class="n">r_arg</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">store</span><span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">]</span>
+            <span class="n">r_arg</span> <span class="o">=</span> <span class="n">retrieve_object</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">arg</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
             <span class="n">result_read_permissions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">intersect_keys</span><span class="p">(</span>
                 <span class="n">result_read_permissions</span><span class="p">,</span> <span class="n">r_arg</span><span class="o">.</span><span class="n">read_permissions</span>
             <span class="p">)</span>
+
             <span class="n">resolved_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r_arg</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
             <span class="n">tag_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r_arg</span><span class="p">)</span>
 
@@ -279,8 +296,7 @@
                         <span class="sa">f</span><span class="s2">&quot;Got </span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2"> of type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
                     <span class="p">)</span>
                 <span class="p">)</span>
-
-            <span class="n">r_arg</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">store</span><span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">]</span>
+            <span class="n">r_arg</span> <span class="o">=</span> <span class="n">retrieve_object</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">arg</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
             <span class="n">result_read_permissions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">intersect_keys</span><span class="p">(</span>
                 <span class="n">result_read_permissions</span><span class="p">,</span> <span class="n">r_arg</span><span class="o">.</span><span class="n">read_permissions</span>
             <span class="p">)</span>
@@ -310,11 +326,29 @@
         <span class="k">if</span> <span class="n">result_read_permissions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">result_read_permissions</span> <span class="o">=</span> <span class="p">{}</span>
 
+        <span class="k">if</span> <span class="n">result_write_permissions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">result_write_permissions</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># TODO: Upload object to seaweed store, instead of storing in redis</span>
+        <span class="c1"># create a proxy object class and store it here.</span>
+        <span class="k">if</span> <span class="n">check_send_to_blob_storage</span><span class="p">(</span>
+            <span class="n">obj</span><span class="o">=</span><span class="n">result</span><span class="p">,</span>
+            <span class="n">use_blob_storage</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span> <span class="s2">&quot;USE_BLOB_STORAGE&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+        <span class="p">):</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">upload_result_to_s3</span><span class="p">(</span>
+                <span class="n">asset_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id_at_location</span><span class="o">.</span><span class="n">no_dash</span><span class="p">,</span>
+                <span class="n">dataset_name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="n">domain_id</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">result</span><span class="p">,</span>
+                <span class="n">settings</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span>
+            <span class="p">)</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">StorableObject</span><span class="p">):</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">StorableObject</span><span class="p">(</span>
                 <span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">,</span>
                 <span class="n">data</span><span class="o">=</span><span class="n">result</span><span class="p">,</span>
                 <span class="n">read_permissions</span><span class="o">=</span><span class="n">result_read_permissions</span><span class="p">,</span>
+                <span class="n">write_permissions</span><span class="o">=</span><span class="n">result_write_permissions</span><span class="p">,</span>
             <span class="p">)</span>
 
         <span class="n">inherit_tags</span><span class="p">(</span>
@@ -329,12 +363,14 @@
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">method_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">arg_names</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">a</span><span class="o">.</span><span class="n">class_name</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">])</span>
-        <span class="n">kwargs_names</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">class_name</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;RunClassMethodAction </span><span class="si">{</span><span class="n">method_name</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">arg_names</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">kwargs_names</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="n">arg_names</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">a</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">])</span>
+        <span class="n">kwargs_names</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;FunctionOrConstructorAction </span><span class="si">{</span><span class="n">method_name</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">arg_names</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">kwargs_names</span><span class="si">}</span><span class="s2">)&quot;</span>
 
     <span class="k">def</span> <span class="nf">_object2proto</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RunFunctionOrConstructorAction_PB</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Returns a protobuf serialization of self.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a protobuf serialization of self.</span>
 
 <span class="sd">        As a requirement of all objects which inherit from Serializable,</span>
 <span class="sd">        this method transforms the current object into the corresponding</span>
@@ -350,8 +386,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">RunFunctionOrConstructorAction_PB</span><span class="p">(</span>
             <span class="n">path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-            <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">serialize</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">],</span>
-            <span class="n">kwargs</span><span class="o">=</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">serialize</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+            <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">serialize</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">to_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">],</span>
+            <span class="n">kwargs</span><span class="o">=</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">serialize</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">to_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
             <span class="n">id_at_location</span><span class="o">=</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">),</span>
             <span class="n">address</span><span class="o">=</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">),</span>
             <span class="n">msg_id</span><span class="o">=</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">),</span>
@@ -361,7 +397,7 @@
     <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span>
         <span class="n">proto</span><span class="p">:</span> <span class="n">RunFunctionOrConstructorAction_PB</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;RunFunctionOrConstructorAction&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Creates a ObjectWithID from a protobuf</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a ObjectWithID from a protobuf</span>
 
 <span class="sd">        As a requirement of all objects which inherit from Serializable,</span>
 <span class="sd">        this method transforms a protobuf object into an instance of this class.</span>
@@ -370,22 +406,24 @@
 <span class="sd">        :rtype: RunFunctionOrConstructorAction</span>
 
 <span class="sd">        .. note::</span>
-<span class="sd">            This method is purely an internal method. Please use syft.deserialize()</span>
+<span class="sd">            This method is purely an internal method. Please use deserialize()</span>
 <span class="sd">            if you wish to deserialize an object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="n">RunFunctionOrConstructorAction</span><span class="p">(</span>
             <span class="n">path</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-            <span class="n">args</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">proto</span><span class="o">.</span><span class="n">args</span><span class="p">),</span>
-            <span class="n">kwargs</span><span class="o">=</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">proto</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
-            <span class="n">id_at_location</span><span class="o">=</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">),</span>
-            <span class="n">address</span><span class="o">=</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">address</span><span class="p">),</span>
-            <span class="n">msg_id</span><span class="o">=</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">msg_id</span><span class="p">),</span>
+            <span class="n">args</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">from_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">proto</span><span class="o">.</span><span class="n">args</span><span class="p">),</span>
+            <span class="n">kwargs</span><span class="o">=</span><span class="p">{</span>
+                <span class="n">k</span><span class="p">:</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">from_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">proto</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">},</span>
+            <span class="n">id_at_location</span><span class="o">=</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">),</span>
+            <span class="n">address</span><span class="o">=</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">address</span><span class="p">),</span>
+            <span class="n">msg_id</span><span class="o">=</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">msg_id</span><span class="p">),</span>
         <span class="p">)</span>
 
 <div class="viewcode-block" id="RunFunctionOrConstructorAction.get_protobuf_schema"><a class="viewcode-back" href="../../../../../../api_reference/syft.core.node.common.action.function_or_constructor_action.html#syft.core.node.common.action.function_or_constructor_action.RunFunctionOrConstructorAction.get_protobuf_schema">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_protobuf_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">GeneratedProtocolMessageType</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
 
 <span class="sd">        As a part of serialization and deserialization, we need the ability to</span>
 <span class="sd">        lookup the protobuf object type directly from the object type. This</span>
@@ -404,7 +442,7 @@
         <span class="k">return</span> <span class="n">RunFunctionOrConstructorAction_PB</span></div>
 
 <div class="viewcode-block" id="RunFunctionOrConstructorAction.remap_input"><a class="viewcode-back" href="../../../../../../api_reference/syft.core.node.common.action.function_or_constructor_action.html#syft.core.node.common.action.function_or_constructor_action.RunFunctionOrConstructorAction.remap_input">[docs]</a>    <span class="k">def</span> <span class="nf">remap_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_input</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">new_input</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Redefines some of the arguments of the function&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Redefines some of the arguments of the function&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">arg</span><span class="o">.</span><span class="n">id_at_location</span> <span class="o">==</span> <span class="n">current_input</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_input</span>

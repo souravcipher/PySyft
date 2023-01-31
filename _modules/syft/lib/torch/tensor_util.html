@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -173,7 +179,7 @@
 <span class="kn">import</span> <span class="nn">pyarrow</span> <span class="k">as</span> <span class="nn">pa</span>
 <span class="kn">import</span> <span class="nn">torch</span> <span class="k">as</span> <span class="nn">th</span>
 
-<span class="c1"># syft relative</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">...experimental_flags</span> <span class="kn">import</span> <span class="n">flags</span>
 <span class="kn">from</span> <span class="nn">...proto.lib.torch.tensor_pb2</span> <span class="kn">import</span> <span class="n">ProtobufContent</span>
 <span class="kn">from</span> <span class="nn">...proto.lib.torch.tensor_pb2</span> <span class="kn">import</span> <span class="n">TensorData</span>
@@ -188,13 +194,13 @@
     <span class="n">th</span><span class="o">.</span><span class="n">float16</span><span class="p">:</span> <span class="s2">&quot;float16&quot;</span><span class="p">,</span>
     <span class="n">th</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span> <span class="s2">&quot;float32&quot;</span><span class="p">,</span>
     <span class="n">th</span><span class="o">.</span><span class="n">float64</span><span class="p">:</span> <span class="s2">&quot;float64&quot;</span><span class="p">,</span>
-    <span class="c1"># th.complex32: &quot;complex32&quot;,</span>
+    <span class="c1"># th.complex32: &quot;complex32&quot;, # deprecated</span>
     <span class="c1"># th.complex64: &quot;complex64&quot;,</span>
     <span class="c1"># th.complex128: &quot;complex128&quot;,</span>
     <span class="n">th</span><span class="o">.</span><span class="n">bool</span><span class="p">:</span> <span class="s2">&quot;bool&quot;</span><span class="p">,</span>
-    <span class="c1"># th.qint8: &quot;qint8&quot;,</span>
-    <span class="c1"># th.quint8: &quot;quint8&quot;,</span>
-    <span class="c1"># th.qint32: &quot;qint32&quot;,</span>
+    <span class="n">th</span><span class="o">.</span><span class="n">qint8</span><span class="p">:</span> <span class="s2">&quot;qint8&quot;</span><span class="p">,</span>
+    <span class="n">th</span><span class="o">.</span><span class="n">quint8</span><span class="p">:</span> <span class="s2">&quot;quint8&quot;</span><span class="p">,</span>
+    <span class="n">th</span><span class="o">.</span><span class="n">qint32</span><span class="p">:</span> <span class="s2">&quot;qint32&quot;</span><span class="p">,</span>
     <span class="n">th</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">:</span> <span class="s2">&quot;bfloat16&quot;</span><span class="p">,</span>
 <span class="p">}</span>
 <span class="n">TORCH_STR_DTYPE</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="bp">cls</span> <span class="k">for</span> <span class="bp">cls</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">TORCH_DTYPE_STR</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
@@ -230,7 +236,7 @@
 
 
 <div class="viewcode-block" id="tensor_serializer"><a class="viewcode-back" href="../../../../api_reference/syft.lib.torch.html#syft.lib.torch.tensor_util.tensor_serializer">[docs]</a><span class="k">def</span> <span class="nf">tensor_serializer</span><span class="p">(</span><span class="n">tensor</span><span class="p">:</span> <span class="n">th</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TensorData</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Strategy to serialize a tensor using Protobuf&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Strategy to serialize a tensor using Protobuf&quot;&quot;&quot;</span>
 
     <span class="n">protobuf_tensor</span> <span class="o">=</span> <span class="n">TensorData</span><span class="p">()</span>
 

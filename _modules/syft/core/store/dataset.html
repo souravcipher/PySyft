@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -169,30 +175,29 @@
               <div>
                 
   <h1>Source code for syft.core.store.dataset</h1><div class="highlight"><pre>
-<span></span><span class="c1"># stdlib</span>
+<span></span><span class="c1"># future</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="c1"># stdlib</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
 <span class="c1"># third party</span>
 <span class="kn">from</span> <span class="nn">google.protobuf.reflection</span> <span class="kn">import</span> <span class="n">GeneratedProtocolMessageType</span>
 
-<span class="c1"># syft absolute</span>
-<span class="kn">import</span> <span class="nn">syft</span> <span class="k">as</span> <span class="nn">sy</span>
-
-<span class="c1"># syft relative</span>
-<span class="kn">from</span> <span class="nn">...</span> <span class="kn">import</span> <span class="n">serialize</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">...proto.core.store.dataset_pb2</span> <span class="kn">import</span> <span class="n">Dataset</span> <span class="k">as</span> <span class="n">Dataset_PB</span>
 <span class="kn">from</span> <span class="nn">...util</span> <span class="kn">import</span> <span class="n">get_fully_qualified_name</span>
-<span class="kn">from</span> <span class="nn">..common.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span>
-<span class="kn">from</span> <span class="nn">..common.serde.serializable</span> <span class="kn">import</span> <span class="n">Serializable</span>
-<span class="kn">from</span> <span class="nn">..common.serde.serializable</span> <span class="kn">import</span> <span class="n">bind_protobuf</span>
+<span class="kn">from</span> <span class="nn">..common.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span> <span class="k">as</span> <span class="n">deserialize</span>  <span class="c1"># noqa: F401</span>
+<span class="kn">from</span> <span class="nn">..common.serde.serializable</span> <span class="kn">import</span> <span class="n">serializable</span>
+<span class="kn">from</span> <span class="nn">..common.serde.serialize</span> <span class="kn">import</span> <span class="n">_serialize</span> <span class="k">as</span> <span class="n">serialize</span>  <span class="c1"># noqa: F401</span>
 <span class="kn">from</span> <span class="nn">..common.uid</span> <span class="kn">import</span> <span class="n">UID</span>
 <span class="kn">from</span> <span class="nn">.storeable_object</span> <span class="kn">import</span> <span class="n">StorableObject</span>
 
 
-<div class="viewcode-block" id="Dataset"><a class="viewcode-back" href="../../../../api_reference/syft.core.store.dataset.html#syft.core.store.Dataset">[docs]</a><span class="nd">@bind_protobuf</span>
-<span class="k">class</span> <span class="nc">Dataset</span><span class="p">(</span><span class="n">Serializable</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Dataset"><a class="viewcode-back" href="../../../../api_reference/syft.core.store.dataset.html#syft.core.store.dataset.Dataset">[docs]</a><span class="nd">@serializable</span><span class="p">()</span>
+<span class="k">class</span> <span class="nc">Dataset</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Dataset is a wrapper over a collection of Serializable objects.</span>
 
 <span class="sd">    Arguments:</span>
@@ -269,6 +274,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="k">if</span> <span class="n">el</span><span class="o">.</span><span class="n">id</span> <span class="o">!=</span> <span class="n">_id</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_object2proto</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dataset_PB</span><span class="p">:</span>
+        <span class="c1"># relative</span>
+        <span class="kn">from</span> <span class="nn">...lib.python.dict</span> <span class="kn">import</span> <span class="n">Dict</span>
+
         <span class="n">proto</span> <span class="o">=</span> <span class="n">Dataset_PB</span><span class="p">()</span>
 
         <span class="c1"># Step 1: Serialize the id to protobuf and copy into protobuf</span>
@@ -298,14 +306,14 @@
 
         <span class="c1"># Step 6: save read permissions</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_permissions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">permission_data</span> <span class="o">=</span> <span class="n">sy</span><span class="o">.</span><span class="n">lib</span><span class="o">.</span><span class="n">python</span><span class="o">.</span><span class="n">Dict</span><span class="p">()</span>
+            <span class="n">permission_data</span> <span class="o">=</span> <span class="n">Dict</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_permissions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">permission_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
             <span class="n">proto</span><span class="o">.</span><span class="n">read_permissions</span> <span class="o">=</span> <span class="n">serialize</span><span class="p">(</span><span class="n">permission_data</span><span class="p">,</span> <span class="n">to_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="c1"># Step 7: save search permissions</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">search_permissions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">permission_data</span> <span class="o">=</span> <span class="n">sy</span><span class="o">.</span><span class="n">lib</span><span class="o">.</span><span class="n">python</span><span class="o">.</span><span class="n">Dict</span><span class="p">()</span>
+            <span class="n">permission_data</span> <span class="o">=</span> <span class="n">Dict</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_permissions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">permission_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
             <span class="n">proto</span><span class="o">.</span><span class="n">search_permissions</span> <span class="o">=</span> <span class="n">serialize</span><span class="p">(</span><span class="n">permission_data</span><span class="p">,</span> <span class="n">to_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -313,10 +321,10 @@
         <span class="k">return</span> <span class="n">proto</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="p">:</span> <span class="n">Dataset_PB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Serializable</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="p">:</span> <span class="n">Dataset_PB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Dataset&quot;</span><span class="p">:</span>
 
         <span class="c1"># Step 1: deserialize the ID</span>
-        <span class="nb">id</span> <span class="o">=</span> <span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="nb">id</span> <span class="o">=</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">UID</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;TODO&quot;</span><span class="p">)</span>
@@ -334,9 +342,9 @@
         <span class="n">result</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span>
 
-<div class="viewcode-block" id="Dataset.get_protobuf_schema"><a class="viewcode-back" href="../../../../api_reference/syft.core.store.dataset.html#syft.core.store.Dataset.get_protobuf_schema">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Dataset.get_protobuf_schema"><a class="viewcode-back" href="../../../../api_reference/syft.core.store.dataset.html#syft.core.store.dataset.Dataset.get_protobuf_schema">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_protobuf_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">GeneratedProtocolMessageType</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
 
 <span class="sd">        As a part of serialization and deserialization, we need the ability to</span>
 <span class="sd">        lookup the protobuf object type directly from the object type. This</span>

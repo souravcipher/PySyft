@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -171,6 +177,8 @@
   <h1>Source code for syft.core.common.uid</h1><div class="highlight"><pre>
 <span></span><span class="c1"># stdlib</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Generator</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span> <span class="k">as</span> <span class="n">uuid_type</span>
@@ -178,17 +186,36 @@
 <span class="c1"># third party</span>
 <span class="kn">from</span> <span class="nn">google.protobuf.reflection</span> <span class="kn">import</span> <span class="n">GeneratedProtocolMessageType</span>
 
-<span class="c1"># syft relative</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">...logger</span> <span class="kn">import</span> <span class="n">critical</span>
 <span class="kn">from</span> <span class="nn">...logger</span> <span class="kn">import</span> <span class="n">traceback_and_raise</span>
 <span class="kn">from</span> <span class="nn">...proto.core.common.common_object_pb2</span> <span class="kn">import</span> <span class="n">UID</span> <span class="k">as</span> <span class="n">UID_PB</span>
-<span class="kn">from</span> <span class="nn">..common.serde.serializable</span> <span class="kn">import</span> <span class="n">Serializable</span>
-<span class="kn">from</span> <span class="nn">..common.serde.serializable</span> <span class="kn">import</span> <span class="n">bind_protobuf</span>
+<span class="kn">from</span> <span class="nn">.decorators</span> <span class="kn">import</span> <span class="n">singleton</span>
+<span class="kn">from</span> <span class="nn">.serde.serializable</span> <span class="kn">import</span> <span class="n">serializable</span>
 
 
-<div class="viewcode-block" id="UID"><a class="viewcode-back" href="../../../../api_reference/syft.core.common.uid.html#syft.core.common.UID">[docs]</a><span class="nd">@bind_protobuf</span>
-<span class="k">class</span> <span class="nc">UID</span><span class="p">(</span><span class="n">Serializable</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A unique ID for every Syft object.</span>
+<span class="c1"># TODO: Make sure to investigate any issues with taxing the /dev/urandom entropy</span>
+<span class="nd">@singleton</span>
+<span class="k">class</span> <span class="nc">UIDValueGenerator</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_uids</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uid_store</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">uuid_type</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__prepopulate</span><span class="p">(</span><span class="n">n_uids</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__prepopulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_uids</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_uids</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">uid_store</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">get_uid</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">uid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">uid_store</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">uid</span>
+
+
+<span class="n">uuid_value_generator</span> <span class="o">=</span> <span class="n">UIDValueGenerator</span><span class="p">()</span><span class="o">.</span><span class="n">get_uid</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="UID"><a class="viewcode-back" href="../../../../api_reference/syft.core.common.uid.html#syft.core.common.UID">[docs]</a><span class="nd">@serializable</span><span class="p">()</span>
+<span class="k">class</span> <span class="nc">UID</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A unique ID for every Syft object.</span>
 
 <span class="sd">    This object creates a unique ID for every object in the Syft</span>
 <span class="sd">    ecosystem. This ID is guaranteed to be unique for the node on</span>
@@ -204,10 +231,11 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="s2">&quot;value&quot;</span>
     <span class="n">value</span><span class="p">:</span> <span class="n">uuid_type</span>
 
 <div class="viewcode-block" id="UID.__init__"><a class="viewcode-back" href="../../../../api_reference/syft.core.common.uid.html#syft.core.common.UID.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">uuid_type</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initializes the internal id using the uuid package.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the internal id using the uuid package.</span>
 
 <span class="sd">        This initializes the object. Normal use for this object is</span>
 <span class="sd">        to initialize the constructor with value==None because you</span>
@@ -230,15 +258,10 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
         <span class="c1"># if value is not set - create a novel and unique ID.</span>
-        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
 
-            <span class="c1"># for more info on how this UUID is generated:</span>
-            <span class="c1"># https://docs.python.org/3/library/uuid.html</span>
-            <span class="n">value</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span>
-
-        <span class="c1"># save the ID&#39;s value. Note that this saves the uuid value</span>
-        <span class="c1"># itself instead of saving the</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">next</span><span class="p">(</span><span class="n">uuid_value_generator</span><span class="p">,</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">value</span>
+        <span class="p">)</span></div>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;UID&quot;</span><span class="p">:</span>
@@ -248,8 +271,11 @@
             <span class="n">critical</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unable to convert </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2"> to UUID. </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">traceback_and_raise</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">no_dash</span>
+
     <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Hashes the UID for use in dictionaries and sets</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Hashes the UID for use in dictionaries and sets</span>
 
 <span class="sd">        A very common use of UID objects is as a key in a dictionary</span>
 <span class="sd">        or database. The object must be able to be hashed in order to</span>
@@ -271,7 +297,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">int</span>
 
     <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Checks to see if two UIDs are the same using the internal object</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks to see if two UIDs are the same using the internal object</span>
 
 <span class="sd">        This checks to see whether this UID is equal to another UID by</span>
 <span class="sd">        comparing whether they have the same .value objects. These objects</span>
@@ -288,15 +314,32 @@
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
 
+    <span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">is_valid_uuid</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">UID</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">no_dash</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Returns a human-readable version of the ID</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a human-readable version of the ID</span>
 
 <span class="sd">        Return a human-readable representation of the UID with brackets</span>
 <span class="sd">        so that it can be easily spotted when nested inside of the human-</span>
 <span class="sd">        readable representations of other objects.&quot;&quot;&quot;</span>
 
-        <span class="n">no_dash</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">no_dash</span><span class="si">}</span><span class="s2">&gt;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">no_dash</span><span class="si">}</span><span class="s2">&gt;&quot;</span>
 
     <span class="k">def</span> <span class="nf">char_emoji</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hex_chars</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">base</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\U0001F642</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -316,10 +359,10 @@
         <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">emoji</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;UID:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">string_emoji</span><span class="p">(</span><span class="n">string</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">),</span> <span class="n">length</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">chunk</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s2">&gt;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;UID:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">string_emoji</span><span class="p">(</span><span class="n">string</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">),</span><span class="w"> </span><span class="n">length</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="n">chunk</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s2">&gt;&quot;</span>
 
 <div class="viewcode-block" id="UID.repr_short"><a class="viewcode-back" href="../../../../api_reference/syft.core.common.uid.html#syft.core.common.UID.repr_short">[docs]</a>    <span class="k">def</span> <span class="nf">repr_short</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Returns a SHORT human-readable version of the ID</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a SHORT human-readable version of the ID</span>
 
 <span class="sd">        Return a SHORT human-readable version of the ID which</span>
 <span class="sd">        makes it print nicer when embedded (often alongside other</span>
@@ -328,7 +371,7 @@
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;..</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)[</span><span class="o">-</span><span class="mi">5</span><span class="p">:]</span><span class="si">}</span><span class="s2">&quot;</span></div>
 
     <span class="k">def</span> <span class="nf">_object2proto</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UID_PB</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Returns a protobuf serialization of self.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a protobuf serialization of self.</span>
 
 <span class="sd">        As a requirement of all objects which inherit from Serializable,</span>
 <span class="sd">        this method transforms the current object into the corresponding</span>
@@ -347,7 +390,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span><span class="n">proto</span><span class="p">:</span> <span class="n">UID_PB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;UID&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Creates a UID from a protobuf</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a UID from a protobuf</span>
 
 <span class="sd">        As a requirement of all objects which inherit from Serializable,</span>
 <span class="sd">        this method transforms a protobuf object into an instance of this class.</span>
@@ -363,7 +406,7 @@
 
 <div class="viewcode-block" id="UID.get_protobuf_schema"><a class="viewcode-back" href="../../../../api_reference/syft.core.common.uid.html#syft.core.common.UID.get_protobuf_schema">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_protobuf_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">GeneratedProtocolMessageType</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
 
 <span class="sd">        As a part of serialization and deserialization, we need the ability to</span>
 <span class="sd">        lookup the protobuf object type directly from the object type. This</span>

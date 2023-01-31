@@ -78,7 +78,7 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../../../getting_started/index.html">
-  Getting started
+  Getting Started
  </a>
 </li>
 
@@ -103,6 +103,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../../../../resources/index.html">
   Resources
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../../../../guides/index.html">
+  How-to Guides
  </a>
 </li>
 
@@ -183,20 +189,21 @@
 <span class="kn">from</span> <span class="nn">google.protobuf.reflection</span> <span class="kn">import</span> <span class="n">GeneratedProtocolMessageType</span>
 <span class="kn">from</span> <span class="nn">nacl.signing</span> <span class="kn">import</span> <span class="n">VerifyKey</span>
 
-<span class="c1"># syft relative</span>
+<span class="c1"># relative</span>
 <span class="kn">from</span> <span class="nn">.....</span> <span class="kn">import</span> <span class="n">lib</span>
-<span class="kn">from</span> <span class="nn">.....</span> <span class="kn">import</span> <span class="n">serialize</span>
 <span class="kn">from</span> <span class="nn">.....proto.core.node.common.action.get_set_property_pb2</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">GetOrSetPropertyAction</span> <span class="k">as</span> <span class="n">GetOrSetPropertyAction_PB</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.....util</span> <span class="kn">import</span> <span class="n">inherit_tags</span>
-<span class="kn">from</span> <span class="nn">....common.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span>
-<span class="kn">from</span> <span class="nn">....common.serde.serializable</span> <span class="kn">import</span> <span class="n">bind_protobuf</span>
+<span class="kn">from</span> <span class="nn">....common.serde.deserialize</span> <span class="kn">import</span> <span class="n">_deserialize</span> <span class="k">as</span> <span class="n">deserialize</span>
+<span class="kn">from</span> <span class="nn">....common.serde.serializable</span> <span class="kn">import</span> <span class="n">serializable</span>
+<span class="kn">from</span> <span class="nn">....common.serde.serialize</span> <span class="kn">import</span> <span class="n">_serialize</span> <span class="k">as</span> <span class="n">serialize</span>
 <span class="kn">from</span> <span class="nn">....common.uid</span> <span class="kn">import</span> <span class="n">UID</span>
 <span class="kn">from</span> <span class="nn">....io.address</span> <span class="kn">import</span> <span class="n">Address</span>
 <span class="kn">from</span> <span class="nn">....store.storeable_object</span> <span class="kn">import</span> <span class="n">StorableObject</span>
 <span class="kn">from</span> <span class="nn">...abstract.node</span> <span class="kn">import</span> <span class="n">AbstractNode</span>
 <span class="kn">from</span> <span class="nn">.common</span> <span class="kn">import</span> <span class="n">ImmediateActionWithoutReply</span>
+<span class="kn">from</span> <span class="nn">.greenlets_switch</span> <span class="kn">import</span> <span class="n">retrieve_object</span>
 <span class="kn">from</span> <span class="nn">.run_class_method_action</span> <span class="kn">import</span> <span class="n">RunClassMethodAction</span>
 
 
@@ -206,7 +213,7 @@
     <span class="n">DEL</span> <span class="o">=</span> <span class="mi">3</span></div>
 
 
-<span class="nd">@bind_protobuf</span>
+<span class="nd">@serializable</span><span class="p">()</span>
 <span class="k">class</span> <span class="nc">GetOrSetPropertyAction</span><span class="p">(</span><span class="n">ImmediateActionWithoutReply</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -232,20 +239,24 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">map_to_dyn</span> <span class="o">=</span> <span class="n">map_to_dyn</span>
 
     <span class="k">def</span> <span class="nf">intersect_keys</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">left</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">VerifyKey</span><span class="p">,</span> <span class="n">UID</span><span class="p">],</span> <span class="n">right</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">VerifyKey</span><span class="p">,</span> <span class="n">UID</span><span class="p">]</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="n">VerifyKey</span><span class="p">,</span> <span class="n">UID</span><span class="p">]:</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">left</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">VerifyKey</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UID</span><span class="p">]],</span>
+        <span class="n">right</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">VerifyKey</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UID</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="n">VerifyKey</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UID</span><span class="p">]]:</span>
         <span class="k">return</span> <span class="n">RunClassMethodAction</span><span class="o">.</span><span class="n">intersect_keys</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">execute_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">AbstractNode</span><span class="p">,</span> <span class="n">verify_key</span><span class="p">:</span> <span class="n">VerifyKey</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ast_node</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">lib_ast</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
         <span class="n">method</span> <span class="o">=</span> <span class="n">ast_node</span><span class="o">.</span><span class="n">object_ref</span>
-        <span class="n">resolved_self</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">store</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_self</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">]</span>
+
+        <span class="c1"># storable object raw from object store</span>
+        <span class="n">resolved_self</span> <span class="o">=</span> <span class="n">retrieve_object</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_self</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
         <span class="n">result_read_permissions</span> <span class="o">=</span> <span class="n">resolved_self</span><span class="o">.</span><span class="n">read_permissions</span>
 
         <span class="n">resolved_args</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">tag_args</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
-            <span class="n">r_arg</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">store</span><span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">]</span>
+            <span class="n">r_arg</span> <span class="o">=</span> <span class="n">retrieve_object</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">arg</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
             <span class="n">result_read_permissions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">intersect_keys</span><span class="p">(</span>
                 <span class="n">result_read_permissions</span><span class="p">,</span> <span class="n">r_arg</span><span class="o">.</span><span class="n">read_permissions</span>
             <span class="p">)</span>
@@ -255,7 +266,7 @@
         <span class="n">resolved_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">tag_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">arg_name</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">r_arg</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">store</span><span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">]</span>
+            <span class="n">r_arg</span> <span class="o">=</span> <span class="n">retrieve_object</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">arg</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
             <span class="n">result_read_permissions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">intersect_keys</span><span class="p">(</span>
                 <span class="n">result_read_permissions</span><span class="p">,</span> <span class="n">r_arg</span><span class="o">.</span><span class="n">read_permissions</span>
             <span class="p">)</span>
@@ -276,6 +287,8 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action</span> <span class="o">==</span> <span class="n">PropertyActions</span><span class="o">.</span><span class="n">SET</span><span class="p">:</span>
                 <span class="nb">setattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ast_node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">upcasted_args</span><span class="p">)</span>
                 <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="c1"># since we may have changed resolve_self.data we need to check it back in</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">store</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_self</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">]</span> <span class="o">=</span> <span class="n">resolved_self</span>
             <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">action</span> <span class="o">==</span> <span class="n">PropertyActions</span><span class="o">.</span><span class="n">GET</span><span class="p">:</span>
                 <span class="n">result</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ast_node</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
             <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">action</span> <span class="o">==</span> <span class="n">PropertyActions</span><span class="o">.</span><span class="n">DEL</span><span class="p">:</span>
@@ -283,10 +296,17 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action</span> <span class="o">==</span> <span class="n">PropertyActions</span><span class="o">.</span><span class="n">SET</span><span class="p">:</span>
                 <span class="n">result</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="fm">__set__</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">upcasted_args</span><span class="p">,</span> <span class="o">**</span><span class="n">upcasted_kwargs</span><span class="p">)</span>
+
+                <span class="c1"># since we may have changed resolve_self.data we need to check it back in</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">store</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_self</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">]</span> <span class="o">=</span> <span class="n">resolved_self</span>
+
             <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">action</span> <span class="o">==</span> <span class="n">PropertyActions</span><span class="o">.</span><span class="n">GET</span><span class="p">:</span>
                 <span class="n">result</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">upcasted_args</span><span class="p">,</span> <span class="o">**</span><span class="n">upcasted_kwargs</span><span class="p">)</span>
             <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">action</span> <span class="o">==</span> <span class="n">PropertyActions</span><span class="o">.</span><span class="n">DEL</span><span class="p">:</span>
                 <span class="n">result</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="fm">__del__</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">upcasted_args</span><span class="p">,</span> <span class="o">**</span><span class="n">upcasted_kwargs</span><span class="p">)</span>
+
+                <span class="c1"># since we may have changed resolve_self.data we need to check it back in</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">store</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_self</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">]</span> <span class="o">=</span> <span class="n">resolved_self</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">action</span><span class="si">}</span><span class="s2"> not a valid action!&quot;</span><span class="p">)</span>
 
@@ -333,7 +353,7 @@
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">attr_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">self_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_self</span><span class="o">.</span><span class="n">class_name</span>
+        <span class="n">self_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action</span> <span class="o">==</span> <span class="n">PropertyActions</span><span class="o">.</span><span class="n">SET</span><span class="p">:</span>
             <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -344,7 +364,7 @@
             <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;GetOrSetPropertyAction DEL </span><span class="si">{</span><span class="n">self_name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">attr_name</span><span class="si">}</span><span class="s2">&quot;</span>
 
     <span class="k">def</span> <span class="nf">_object2proto</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GetOrSetPropertyAction_PB</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Returns a protobuf serialization of self.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a protobuf serialization of self.</span>
 <span class="sd">        As a requirement of all objects which inherit from Serializable,</span>
 <span class="sd">        this method transforms the current object into the corresponding</span>
 <span class="sd">        Protobuf object so that it can be further serialized.</span>
@@ -361,7 +381,7 @@
             <span class="n">args</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">serialize</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)),</span>
             <span class="n">kwargs</span><span class="o">=</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">serialize</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
             <span class="n">address</span><span class="o">=</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">),</span>
-            <span class="n">_self</span><span class="o">=</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_self</span><span class="p">),</span>
+            <span class="n">_self</span><span class="o">=</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_self</span><span class="p">,</span> <span class="n">to_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
             <span class="n">msg_id</span><span class="o">=</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">),</span>
             <span class="n">action</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
             <span class="n">map_to_dyn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">map_to_dyn</span><span class="p">,</span>
@@ -371,7 +391,7 @@
     <span class="k">def</span> <span class="nf">_proto2object</span><span class="p">(</span>
         <span class="n">proto</span><span class="p">:</span> <span class="n">GetOrSetPropertyAction_PB</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;GetOrSetPropertyAction&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Creates a GetOrSetPropertyAction from a protobuf</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a GetOrSetPropertyAction from a protobuf</span>
 <span class="sd">        As a requirement of all objects which inherit from Serializable,</span>
 <span class="sd">        this method transforms a protobuf object into an instance of this class.</span>
 <span class="sd">        :return: returns an instance of GetOrSetPropertyAction</span>
@@ -383,19 +403,19 @@
 
         <span class="k">return</span> <span class="n">GetOrSetPropertyAction</span><span class="p">(</span>
             <span class="n">path</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-            <span class="n">id_at_location</span><span class="o">=</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">),</span>
-            <span class="n">address</span><span class="o">=</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">address</span><span class="p">),</span>
-            <span class="n">_self</span><span class="o">=</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">_self</span><span class="p">),</span>
-            <span class="n">msg_id</span><span class="o">=</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">msg_id</span><span class="p">),</span>
-            <span class="n">args</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">proto</span><span class="o">.</span><span class="n">args</span><span class="p">),</span>
-            <span class="n">kwargs</span><span class="o">=</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">_deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">proto</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+            <span class="n">id_at_location</span><span class="o">=</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">id_at_location</span><span class="p">),</span>
+            <span class="n">address</span><span class="o">=</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">address</span><span class="p">),</span>
+            <span class="n">_self</span><span class="o">=</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">_self</span><span class="p">,</span> <span class="n">from_bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+            <span class="n">msg_id</span><span class="o">=</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">msg_id</span><span class="p">),</span>
+            <span class="n">args</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">proto</span><span class="o">.</span><span class="n">args</span><span class="p">),</span>
+            <span class="n">kwargs</span><span class="o">=</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">blob</span><span class="o">=</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">proto</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
             <span class="n">action</span><span class="o">=</span><span class="n">PropertyActions</span><span class="p">(</span><span class="n">proto</span><span class="o">.</span><span class="n">action</span><span class="p">),</span>
             <span class="n">map_to_dyn</span><span class="o">=</span><span class="n">proto</span><span class="o">.</span><span class="n">map_to_dyn</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_protobuf_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">GeneratedProtocolMessageType</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the type of protobuf object which stores a class of this type</span>
 <span class="sd">        As a part of serialization and deserialization, we need the ability to</span>
 <span class="sd">        lookup the protobuf object type directly from the object type. This</span>
 <span class="sd">        static method allows us to do this.</span>
